@@ -20,7 +20,10 @@ def verify_evidence(claim: str, evidence_list: list):
 
             "retrieval_score": item.get("retrieval_score", 0.0),
 
-            "rerank_score": item["rerank_score"],
+            "rerank_score": item.get(
+                "rerank_score",
+                item.get("retrieval_score", 0.0),
+            ),
 
             "source_score": get_source_score(
                 item["document"]["source"]

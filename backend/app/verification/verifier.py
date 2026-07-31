@@ -1,25 +1,29 @@
 import torch
 from torch.nn.functional import softmax
+from app.verification.model import get_model
 
-from app.verification.model import tokenizer, model
 
 LABEL_MAP = {
+    "entailment": "SUPPORTED",
+    "neutral": "INSUFFICIENT_EVIDENCE",
+    "contradiction": "CONTRADICTED",
+
     "ENTAILMENT": "SUPPORTED",
+    "NEUTRAL": "INSUFFICIENT_EVIDENCE",
     "CONTRADICTION": "CONTRADICTED",
-    "NEUTRAL": "INSUFFICIENT_EVIDENCE"
 }
 
 
 def verify_claim(claim: str, evidence: str):
-    """
-    Verify a claim against one evidence chunk.
-    """
+
+    tokenizer, model = get_model()
 
     inputs = tokenizer(
-        claim,
         evidence,
+        claim,
         return_tensors="pt",
         truncation=True,
+        padding=True,
         max_length=512
     )
 
@@ -28,11 +32,13 @@ def verify_claim(claim: str, evidence: str):
 
     probabilities = softmax(outputs.logits, dim=1)[0]
 
+    print("id2label:", model.config.id2label)
+    print("probabilities:", probabilities.tolist())
+
     best_index = torch.argmax(probabilities).item()
 
-    label = model.config.id2label[best_index]
-
+    raw_label = model.config.id2label[best_index]
     return {
-        "label": LABEL_MAP[label.upper()],
+        "label": LABEL_MAP.get(raw_label.lower(), raw_label),
         "confidence": float(probabilities[best_index])
     }

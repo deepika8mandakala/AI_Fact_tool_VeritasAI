@@ -1,6 +1,17 @@
 from transformers import pipeline
 
-classifier = pipeline(
-    "zero-shot-classification",
-    model="MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli"
-)
+_classifier = None
+
+MODEL_NAME = "typeform/distilbert-base-uncased-mnli"
+
+
+def get_classifier():
+    global _classifier
+
+    if _classifier is None:
+        _classifier = pipeline(
+            "zero-shot-classification",
+            model=MODEL_NAME
+        )
+
+    return _classifier

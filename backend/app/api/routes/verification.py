@@ -36,7 +36,9 @@ def verify(request: VerificationRequest):
         request.claim,
         filtered
     )
-
+    print("VERIFIED RESULTS:")
+    from pprint import pprint
+    pprint(verified)
     summary = aggregate_verdict(
         verified
     )

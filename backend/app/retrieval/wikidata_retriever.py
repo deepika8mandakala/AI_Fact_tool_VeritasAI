@@ -1,4 +1,5 @@
 import requests
+from app.retrieval.evidence_schema import create_evidence
 
 SEARCH_URL = "https://www.wikidata.org/w/api.php"
 
@@ -35,17 +36,23 @@ def wikidata_search(claim: str):
     evidence = []
 
     for item in data.get("search", [])[:3]:
-        evidence.append({
-            "document": {
-                "doc_id": item.get("id"),
-                "chunk_id": 0,
-                "title": item.get("label"),
-                "source": "Wikidata",
-                "url": f"https://www.wikidata.org/wiki/{item.get('id')}",
-                "published_at": None,
-                "chunk_text": item.get("description", ""),
-            },
-            "retrieval_score": 0.95,
-        })
+
+        document = {
+            "doc_id": item.get("id"),
+            "chunk_id": 0,
+            "title": item.get("label"),
+            "source": "Wikidata",
+            "url": f"https://www.wikidata.org/wiki/{item.get('id')}",
+            "published_at": None,
+            "chunk_text": item.get("description", ""),
+        }
+
+        evidence.append(
+            create_evidence(
+                document=document,
+                retrieval_score=0.95,
+                retriever="wikidata",
+            )
+        )
 
     return evidence

@@ -9,21 +9,22 @@ def create_index():
 
 def retrieve_evidence(claim: str, top_k: int = 10):
 
-    retrieved = retrieve(
-        claim,
-        top_k
-    )
+    retrieved = retrieve(claim, top_k)
 
     # Convert FAISS score -> retrieval_score
     for item in retrieved:
         item["retrieval_score"] = float(item.pop("score"))
 
-    ranked = rank_evidence(
-        claim,
-        retrieved
-    )
+    # IMPORTANT: rerank the evidence
+    ranked = rank_evidence(claim, retrieved)
 
+    max_similarity = max(
+        (item["retrieval_score"] for item in ranked),
+        default=0.0,
+    )
+    print(ranked[0].keys() if ranked else "No evidence")
     return {
         "claim": claim,
-        "evidence": ranked
+        "evidence": ranked,
+        "max_similarity": max_similarity,
     }

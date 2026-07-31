@@ -63,3 +63,9 @@ pytest==8.4.2
 loguru==0.7.3
 
 langdetect==1.0.9
+sqlalchemy>=2.0
+aiosqlite>=0.20
+huggingface-hub>=0.34
+safetensors>=0.6
+feedparser==6.0.11
+wikipedia-api==0.8.1
