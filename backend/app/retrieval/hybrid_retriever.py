@@ -1,47 +1,96 @@
 from app.retrieval.service import retrieve_evidence
 from app.retrieval.web_retriever import wikipedia_search
 from app.retrieval.wikidata_retriever import wikidata_search
-from app.classifier.claim_classifier import classify_claim
-
+from app.retrieval.classifier import is_news_claim
+from app.ranking.service import rank_evidence
+from app.filtering.relevance import (
+    filter_relevant_evidence
+)
 SIMILARITY_THRESHOLD = 0.70
 
 
 def hybrid_retrieve(claim: str, top_k: int):
 
-    claim_type = classify_claim(claim)
+    faiss_result = retrieve_evidence(
+        claim,
+        top_k
+    )
 
-    faiss_result = retrieve_evidence(claim, top_k)
+    similarity = faiss_result["max_similarity"]
 
     evidence = []
 
-    # Use FAISS only if similarity is high
-    if faiss_result["max_similarity"] < SIMILARITY_THRESHOLD:
-        print("Low similarity -> Using Wikipedia")
+    news = is_news_claim(claim)
 
-        evidence.extend(faiss_result["evidence"])
+    print("News Claim:", news)
+    print("Similarity:", similarity)
+
+    # -------------------------
+    # News claims
+    # -------------------------
+
+    if news:
+
+        print("Using News Index")
+
+        evidence.extend(
+            faiss_result["evidence"]
+        )
+
+    # -------------------------
+    # Fact claims
+    # -------------------------
 
     else:
 
-        print("Low similarity -> Using Wikipedia")
+        if similarity >= SIMILARITY_THRESHOLD:
 
-    # Wikipedia fallback
-    if claim_type in [
-        "entity",
-        "scientific",
-        "medical",
-        "statistical"
-    ]:
+            print("High similarity -> Using FAISS")
 
-        evidence.extend(
-            wikipedia_search(claim)
-        )
+            evidence.extend(
+                faiss_result["evidence"]
+            )
 
-        wikidata = wikidata_search(claim)
+        else:
 
-        if wikidata:
-            evidence.extend(wikidata)
+            print("Low similarity -> Using Wikipedia")
 
+            wiki_results = wikipedia_search(claim)
+
+            for item in wiki_results:
+
+                item["retrieval_score"] = 1.0
+
+            wiki_results = rank_evidence(
+                claim,
+                wiki_results
+            )
+
+            evidence.extend(
+                wiki_results
+            )
+
+            wikidata = wikidata_search(claim)
+
+            if wikidata:
+
+                for item in wikidata:
+
+                    item["retrieval_score"] = 1.0
+
+                wikidata = rank_evidence(
+                    claim,
+                    wikidata
+                )
+
+                evidence.extend(
+                    wikidata
+                )
+
+    # -------------------------
     # Remove duplicates
+    # -------------------------
+
     unique = {}
 
     for item in evidence:
@@ -53,6 +102,18 @@ def hybrid_retrieve(claim: str, top_k: int):
 
         unique[key] = item
 
-    faiss_result["evidence"] = list(unique.values())
+    evidence = list(
+        unique.values()
+    )
+
+    evidence = filter_relevant_evidence(
+        claim,
+        evidence
+    )
+    print(
+        "Relevant Evidence:",
+        len(evidence)
+    )
+    faiss_result["evidence"] = evidence
 
     return faiss_result

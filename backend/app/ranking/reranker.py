@@ -1,7 +1,9 @@
 from scipy.special import expit
 
 from app.ranking.model import ranking_model
-from app.ranking.source_ranker import get_source_score
+from app.ranking.source_ranker import get_source_info
+from app.freshness.service import get_freshness_score
+from app.quality.service import calculate_quality_score
 
 
 def rerank(claim: str, evidence: list):
@@ -23,34 +25,97 @@ def rerank(claim: str, evidence: list):
 
     for item, raw_score in zip(evidence, raw_scores):
 
-        retrieval_score = float(item.get("retrieval_score", 0.0))
-
-        # Normalize retrieval score
-        retrieval_score = max(0.0, min(1.0, retrieval_score))
-
-        # Convert CrossEncoder logit → probability
-        rerank_score = float(expit(raw_score))
-
-        source_score = get_source_score(
-            item["document"].get("url", "")
+        retrieval_score = float(
+            item.get("retrieval_score", 0.0)
         )
+
+        retrieval_score = max(
+            0.0,
+            min(1.0, retrieval_score)
+        )
+
+        rerank_score = float(
+            expit(raw_score)
+        )
+
+        # -------------------------
+        # Source
+        # -------------------------
+
+        source = get_source_info(
+            item["document"].get(
+                "url",
+                ""
+            )
+        )
+
+        source_score = source["score"]
+
+        # -------------------------
+        # Freshness
+        # -------------------------
+
+        freshness = get_freshness_score(
+            item["document"].get(
+                "published_at",
+                ""
+            )
+        )
+
+        # -------------------------
+        # Quality
+        # -------------------------
+
+        quality = calculate_quality_score(
+            retrieval_score,
+            rerank_score,
+            source_score,
+            freshness
+        )
+
+        # -------------------------
+        # Final Score
+        # -------------------------
 
         final_score = (
-            0.40 * retrieval_score +
-            0.40 * rerank_score +
-            0.20 * source_score
+            0.35 * retrieval_score +
+            0.35 * rerank_score +
+            0.20 * source_score +
+            0.10 * freshness
         )
+
+        # -------------------------
+        # Save values
+        # -------------------------
 
         item["retrieval_score"] = retrieval_score
         item["rerank_score"] = rerank_score
+
         item["source_score"] = source_score
+        item["freshness_score"] = freshness
+
+        item["bias"] = source["bias"]
+        item["reliability"] = source["reliability"]
+        item["category"] = source["category"]
+
+        item["quality_score"] = quality["quality_score"]
+        item["quality_label"] = quality["quality_label"]
+        item["stars"] = quality["stars"]
+
         item["final_score"] = final_score
 
         ranked.append(item)
 
     ranked.sort(
-        key=lambda x: x["final_score"],
+        key=lambda x: (
+            x["quality_score"],
+            x["final_score"]
+        ),
         reverse=True
     )
+    print("\n===== AFTER RERANK =====")
 
+    for item in ranked:
+
+        print(item.keys())
     return ranked

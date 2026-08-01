@@ -1,115 +1,184 @@
 """
 Source Credibility Ranking
-
-Assigns a credibility score to evidence sources.
-Higher score = More trusted source.
 """
 
 from urllib.parse import urlparse
 
-
-# Trusted domains and their credibility scores
-SOURCE_SCORES = {
+SOURCE_INFO = {
 
     # -----------------------------
     # International Organizations
     # -----------------------------
-    "un.org": 1.00,
-    "worldbank.org": 1.00,
-    "who.int": 1.00,
-    "oecd.org": 1.00,
-    "imf.org": 1.00,
+    "un.org": {
+        "score": 1.00,
+        "bias": "None",
+        "reliability": "Very High",
+        "category": "International Organization"
+    },
 
-    # -----------------------------
-    # Government Websites
-    # -----------------------------
-    "gov.in": 0.98,
-    "gov.uk": 0.98,
-    "usa.gov": 0.98,
-    "nih.gov": 0.98,
-    "cdc.gov": 0.98,
-    "nasa.gov": 0.98,
+    "worldbank.org": {
+        "score": 1.00,
+        "bias": "None",
+        "reliability": "Very High",
+        "category": "International Organization"
+    },
 
-    # -----------------------------
-    # Encyclopedias
-    # -----------------------------
-    "wikipedia.org": 0.95,
-    "wikidata.org": 0.95,
-    "britannica.com": 0.95,
+    "who.int": {
+        "score": 1.00,
+        "bias": "None",
+        "reliability": "Very High",
+        "category": "Health"
+    },
 
-    # -----------------------------
-    # International News
-    # -----------------------------
-    "reuters.com": 0.90,
-    "apnews.com": 0.90,
-    "bbc.com": 0.88,
-    "bbc.co.uk": 0.88,
-    "nytimes.com": 0.88,
-    "theguardian.com": 0.87,
+    "gov.in": {
+        "score": 0.98,
+        "bias": "Low",
+        "reliability": "Very High",
+        "category": "Government"
+    },
 
-    # -----------------------------
-    # Science & Medical
-    # -----------------------------
-    "nature.com": 0.96,
-    "science.org": 0.96,
-    "pubmed.ncbi.nlm.nih.gov": 0.98,
+    "bbc.com": {
+        "score": 0.88,
+        "bias": "Low",
+        "reliability": "High",
+        "category": "International News"
+    },
 
-    # -----------------------------
-    # Technology
-    # -----------------------------
-    "arxiv.org": 0.85,
+    "bbc.co.uk": {
+        "score": 0.88,
+        "bias": "Low",
+        "reliability": "High",
+        "category": "International News"
+    },
 
-    # -----------------------------
-    # Financial
-    # -----------------------------
-    "bloomberg.com": 0.87,
-    "wsj.com": 0.87,
+    "reuters.com": {
+        "score": 0.90,
+        "bias": "Low",
+        "reliability": "Very High",
+        "category": "International News"
+    },
 
-    # -----------------------------
-    # Default News Blogs
-    # -----------------------------
-    "medium.com": 0.60,
-    "substack.com": 0.60,
+    "apnews.com": {
+        "score": 0.90,
+        "bias": "Low",
+        "reliability": "Very High",
+        "category": "International News"
+    },
+
+    "wikipedia.org": {
+        "score": 0.95,
+        "bias": "Low",
+        "reliability": "High",
+        "category": "Encyclopedia"
+    },
+
+    "wikidata.org": {
+        "score": 0.95,
+        "bias": "Low",
+        "reliability": "High",
+        "category": "Knowledge Base"
+    },
+
+    "nature.com": {
+        "score": 0.96,
+        "bias": "None",
+        "reliability": "Very High",
+        "category": "Scientific Journal"
+    },
+    "economictimes.indiatimes.com": {
+    "score": 0.84,
+    "bias": "Low",
+    "reliability": "High",
+    "category": "Business News"
+},
+
+    "onefootball.com": {
+        "score": 0.75,
+        "bias": "Low",
+        "reliability": "Medium",
+        "category": "Sports"
+    },
+
+    "financialpost.com": {
+        "score": 0.85,
+        "bias": "Low",
+        "reliability": "High",
+        "category": "Business News"
+    },
+
+    "science.org": {
+        "score": 0.96,
+        "bias": "None",
+        "reliability": "Very High",
+        "category": "Scientific Journal"
+    },
+
+    "pubmed.ncbi.nlm.nih.gov": {
+        "score": 0.98,
+        "bias": "None",
+        "reliability": "Very High",
+        "category": "Medical Research"
+    },
+
+    "medium.com": {
+        "score": 0.60,
+        "bias": "Unknown",
+        "reliability": "Medium",
+        "category": "Blog"
+    },
+
+    "substack.com": {
+        "score": 0.60,
+        "bias": "Unknown",
+        "reliability": "Medium",
+        "category": "Blog"
+    },
+
+    "thehindu.com": {
+    "score": 0.88,
+    "bias": "Low",
+    "reliability": "High",
+    "category": "National News"
+    },
+
+}
+
+DEFAULT_INFO = {
+    "score": 0.60,
+    "bias": "Unknown",
+    "reliability": "Medium",
+    "category": "Unknown"
 }
 
 
-DEFAULT_SCORE = 0.60
-
-
-def get_source_score(url: str) -> float:
-    """
-    Returns credibility score for a URL.
-
-    Parameters
-    ----------
-    url : str
-
-    Returns
-    -------
-    float
-        Credibility score (0-1)
-    """
+def get_source_info(url: str):
 
     if not url:
-        return DEFAULT_SCORE
+        return DEFAULT_INFO
 
     try:
+
         domain = urlparse(url).netloc.lower()
 
-        # Remove www.
         if domain.startswith("www."):
             domain = domain[4:]
 
-        # Exact match
-        if domain in SOURCE_SCORES:
-            return SOURCE_SCORES[domain]
+        if domain in SOURCE_INFO:
+            return SOURCE_INFO[domain]
 
-        # Parent domain match
-        for trusted_domain, score in SOURCE_SCORES.items():
+        for trusted_domain, info in SOURCE_INFO.items():
             if domain.endswith(trusted_domain):
-                return score
+                return info
 
     except Exception:
         pass
 
-    return DEFAULT_SCORE
+    return DEFAULT_INFO
+
+
+def get_source_score(url: str) -> float:
+    """
+    Backward compatible.
+    Existing code still works.
+    """
+    return get_source_info(url)["score"]
