@@ -10,7 +10,7 @@ from utils import (
 )
 
 from components.verdict_card import show_verdict
-from components.evidence_card import show_evidence
+from components.evidence_card import show_evidence_card
 from components.metrics import show_metrics
 
 st.set_page_config(
@@ -168,7 +168,14 @@ if st.button("Verify Claim"):
 
     st.info(result["explanation"])
 
-    show_evidence(result["results"])
+
+    st.header("Evidence")
+
+    for evidence in result["results"]:
+
+        show_evidence_card(
+            evidence
+        )
 
 # ==========================
 # HISTORY

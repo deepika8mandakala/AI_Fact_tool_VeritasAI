@@ -1,51 +1,66 @@
 import streamlit as st
 
-def show_evidence(results):
 
-    st.header("📚 Evidence")
+def show_evidence_card(evidence):
 
-    for i, evidence in enumerate(results):
+    doc = evidence["document"]
 
-        doc = evidence["document"]
+    verdict = evidence["verdict"]
 
-        with st.expander(f"Evidence {i+1}"):
+    # -----------------------------
+    # Card Header
+    # -----------------------------
+    if verdict == "SUPPORTED":
+        st.success(f"✅ {doc['title']}")
 
-            st.markdown(f"### {doc['title']}")
+    elif verdict == "CONTRADICTED":
+        st.error(f"❌ {doc['title']}")
 
-            c1, c2 = st.columns(2)
+    else:
+        st.warning(f"⚠️ {doc['title']}")
 
-            with c1:
+    # -----------------------------
+    # Source Information
+    # -----------------------------
+    st.markdown(f"**📰 Source:** {doc['source']}")
+    st.markdown(f"**📅 Published:** {doc.get('published_at', 'N/A')}")
 
-                st.write("**Source**")
-                st.write(doc["source"])
+    # -----------------------------
+    # Scores
+    # -----------------------------
+    col1, col2, col3 = st.columns(3)
 
-                st.write("**Published**")
-                st.write(doc.get("published_at", "N/A"))
+    with col1:
+        st.metric(
+            "Confidence",
+            f"{evidence['confidence']*100:.1f}%"
+        )
 
-                st.write("**Verdict**")
-                st.write(evidence["verdict"])
+    with col2:
+        st.metric(
+            "Retrieval",
+            f"{evidence['retrieval_score']:.3f}"
+        )
 
-            with c2:
+    with col3:
+        st.metric(
+            "Rerank",
+            f"{evidence['rerank_score']:.3f}"
+        )
 
-                st.metric(
-                    "Confidence",
-                    f"{evidence['confidence']*100:.1f}%"
-                )
+    # -----------------------------
+    # Evidence
+    # -----------------------------
+    st.markdown("### 🔍 Evidence")
 
-                st.metric(
-                    "Retrieval",
-                    f"{evidence['retrieval_score']:.3f}"
-                )
+    st.info(evidence["highlight"])
 
-                st.metric(
-                    "Credibility",
-                    f"{evidence['source_score']:.2f}"
-                )
+    # -----------------------------
+    # Original Article
+    # -----------------------------
+    url = doc.get("url")
 
-            st.info(evidence["highlight"])
+    if url:
+        st.markdown(f"🔗 [Open Original Article]({url})")
 
-            if doc.get("url"):
-                st.link_button(
-                    "🔗 Open Original Article",
-                    doc["url"]
-                )
+    st.divider()

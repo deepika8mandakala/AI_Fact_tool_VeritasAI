@@ -1,6 +1,22 @@
-.env
-.env.*
-!.env.example
-venv/
+# Python
 __pycache__/
 *.pyc
+
+# Virtual environment
+venv/
+
+# Database
+*.db
+
+# FAISS
+backend/vector_db/
+
+# IDE
+.vscode/
+.idea/
+
+# Environment
+.env
+
+# Streamlit
+.streamlit/
