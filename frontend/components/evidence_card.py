@@ -1,5 +1,5 @@
 import streamlit as st
-
+from components.source_badge import show_source_badge
 
 def show_evidence_card(evidence):
 
@@ -22,7 +22,10 @@ def show_evidence_card(evidence):
     # -----------------------------
     # Source Information
     # -----------------------------
-    st.markdown(f"**📰 Source:** {doc['source']}")
+    show_source_badge(
+    doc["source"],
+    evidence["source_score"]
+)
     st.markdown(f"**📅 Published:** {doc.get('published_at', 'N/A')}")
 
     # -----------------------------
