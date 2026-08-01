@@ -1,6 +1,6 @@
 import streamlit as st
 from components.source_badge import show_source_badge
-from utils.source_logos import SOURCE_LOGOS
+from assets.source_logos import SOURCE_LOGOS
 from components.trust_gauge import (
     show_trust_gauge
 )
