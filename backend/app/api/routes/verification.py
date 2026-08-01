@@ -52,15 +52,16 @@ def verify(request: VerificationRequest):
     # SAVE TO DATABASE
     save_claim(
         claim=request.claim,
-       verdict=summary["final_verdict"],
-       confidence=summary["confidence"],
-       explanation=explanation,
+        verdict=summary["final_verdict"],
+        confidence=summary["confidence"],
+        explanation=explanation["summary"],
     )
 
     return {
         "claim": request.claim,
         "summary": summary,
-        "explanation": explanation,
+        "explanation": explanation["summary"],
+        "reasoning": explanation["reasoning"],
         "filtered_out": len(retrieved["evidence"]) - len(filtered),
         "results": verified,
     }

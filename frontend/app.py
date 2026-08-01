@@ -12,7 +12,7 @@ from utils import (
 from components.verdict_card import show_verdict
 from components.evidence_card import show_evidence_card
 from components.metrics import show_metrics
-
+from components.explanation_card import show_explanation
 st.set_page_config(
     page_title="VeritasAI",
     layout="wide"
@@ -164,9 +164,7 @@ if st.button("Verify Claim"):
     show_verdict(summary)
     show_metrics(result)
 
-    st.header("🤖 AI Explanation")
-
-    st.info(result["explanation"])
+    show_explanation(result)
 
 
     st.header("Evidence")
