@@ -35,6 +35,10 @@ def preprocess_document(document):
         cleaned,
         language
     )
+    # Ignore tiny or useless texts
+    if len(translated.split()) < 40:
+
+        return None
 
     return {
         "title": document.get("title", ""),
@@ -51,8 +55,10 @@ def preprocess_documents(documents):
     processed = []
 
     for doc in documents:
-        processed.append(
-            preprocess_document(doc)
-        )
+
+        processed_doc = preprocess_document(doc)
+
+        if processed_doc is not None:
+            processed.append(processed_doc)
 
     return remove_duplicates(processed)

@@ -11,18 +11,22 @@ def retrieve_evidence(claim: str, top_k: int = 10):
 
     retrieved = retrieve(claim, top_k)
 
-    # Convert FAISS score -> retrieval_score
+    print("Retrieved:", len(retrieved))
+    print(retrieved)
+
     for item in retrieved:
         item["retrieval_score"] = float(item.pop("score"))
 
-    # IMPORTANT: rerank the evidence
     ranked = rank_evidence(claim, retrieved)
+
+    print("Ranked:", len(ranked))
+    print(ranked)
 
     max_similarity = max(
         (item["retrieval_score"] for item in ranked),
         default=0.0,
     )
-    print(ranked[0].keys() if ranked else "No evidence")
+    print("Maximum Similarity:", max_similarity)
     return {
         "claim": claim,
         "evidence": ranked,

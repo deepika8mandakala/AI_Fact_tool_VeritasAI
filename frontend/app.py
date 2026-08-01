@@ -9,6 +9,10 @@ from utils import (
     clear_history
 )
 
+from components.verdict_card import show_verdict
+from components.evidence_card import show_evidence
+from components.metrics import show_metrics
+
 st.set_page_config(
     page_title="VeritasAI",
     layout="wide"
@@ -116,7 +120,8 @@ else:
 st.subheader("Real-Time Claim Verification")
 
 claim = st.text_area(
-    "Enter a claim",
+    "📝 Enter a claim to verify",
+    placeholder="Example: Narendra Modi is the Prime Minister of India",
     height=120
 )
 
@@ -135,7 +140,7 @@ if st.button("Verify Claim"):
 
         st.stop()
 
-    with st.spinner("Verifying..."):
+    with st.spinner("🔍 Searching trusted sources and verifying the claim..."):
 
         try:
 
@@ -156,78 +161,14 @@ if st.button("Verify Claim"):
 
     verdict = summary["final_verdict"]
 
-    st.header("Final Verdict")
+    show_verdict(summary)
+    show_metrics(result)
 
-    col1, col2 = st.columns(2)
+    st.header("🤖 AI Explanation")
 
-    with col1:
+    st.info(result["explanation"])
 
-        st.header("Final Verdict")
-
-        if verdict == "SUPPORTED":
-            st.success(verdict)
-
-        elif verdict == "CONTRADICTED":
-            st.error(verdict)
-
-        else:
-            st.warning(verdict)
-
-    with col2:
-
-        st.metric(
-            "Confidence",
-            f"{summary['confidence']:.2f}"
-        )
-
-    st.header("Explanation")
-
-    st.write(
-        result["explanation"]
-    )
-
-    st.header("Evidence")
-
-    for evidence in result["results"]:
-
-        with st.expander(
-            evidence["document"]["title"]
-        ):
-
-            st.write(
-                "**Source:**",
-                evidence["document"]["source"]
-            )
-
-            st.write(
-                "**Verdict:**",
-                evidence["verdict"]
-            )
-
-            st.write(
-                "**Confidence:**",
-                f"{evidence['confidence']:.2f}"
-            )
-
-            st.write(
-                "**Highlight:**"
-            )
-
-            st.info(
-                evidence["highlight"]
-            )
-            st.write(
-                "**Published:**",
-                evidence["document"].get("published_at", "N/A")
-            )
-
-            st.write(
-                "**URL:**"
-            )
-
-            st.markdown(
-                evidence["document"].get("url", "")
-            )
+    show_evidence(result["results"])
 
 # ==========================
 # HISTORY

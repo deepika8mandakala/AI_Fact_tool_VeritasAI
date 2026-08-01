@@ -50,12 +50,12 @@ def verify(request: VerificationRequest):
     )
 
     # SAVE TO DATABASE
-    # save_claim(
-    #    claim=request.claim,
-    #   verdict=summary["final_verdict"],
-    #    confidence=summary["confidence"],
-    #   explanation=explanation,
-    # )
+    save_claim(
+        claim=request.claim,
+       verdict=summary["final_verdict"],
+       confidence=summary["confidence"],
+       explanation=explanation,
+    )
 
     return {
         "claim": request.claim,

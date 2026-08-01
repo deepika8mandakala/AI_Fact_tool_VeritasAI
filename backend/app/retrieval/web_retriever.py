@@ -1,6 +1,8 @@
 import re
 from typing import Optional, List, Dict, Any
+import spacy
 
+nlp = spacy.load("en_core_web_sm")
 try:
     import wikipediaapi
 except ImportError:  # pragma: no cover - informative fallback when package is missing
@@ -17,31 +19,20 @@ else:
     wiki = None
 
 
-def extract_entity(claim: str) -> str:
-    """
-    Extract the main entity from a factual claim.
-    """
+def extract_entity(claim: str):
 
-    claim = claim.strip()
+    doc = nlp(claim)
 
-    patterns = [
-        r"^(.*?)\s+is\s+",
-        r"^(.*?)\s+was\s+",
-        r"^(.*?)\s+are\s+",
-        r"^(.*?)\s+were\s+",
-        r"^(.*?)\s+has\s+",
-        r"^(.*?)\s+have\s+",
-        r"^(.*?)\s+can\s+",
-        r"^(.*?)\s+will\s+",
-        r"^(.*?)\s+contains\s+",
-    ]
+    for token in doc:
 
-    for pattern in patterns:
+        if token.dep_ == "nsubj":
 
-        match = re.match(pattern, claim, re.IGNORECASE)
+            entity = " ".join(
+                t.text
+                for t in token.subtree
+            )
 
-        if match:
-            return match.group(1).strip()
+            return entity
 
     return claim
 

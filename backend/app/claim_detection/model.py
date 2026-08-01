@@ -1,17 +1,3 @@
-from transformers import pipeline
+from app.models.deberta import get_classifier
 
-_classifier = None
-
-MODEL_NAME = "typeform/distilbert-base-uncased-mnli"
-
-
-def get_classifier():
-    global _classifier
-
-    if _classifier is None:
-        _classifier = pipeline(
-            "zero-shot-classification",
-            model=MODEL_NAME
-        )
-
-    return _classifier
+__all__ = ["get_classifier"]

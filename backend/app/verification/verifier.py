@@ -1,7 +1,6 @@
 import torch
 from torch.nn.functional import softmax
-from app.verification.model import get_model
-
+from app.verification.model import get_verification_model
 
 LABEL_MAP = {
     "entailment": "SUPPORTED",
@@ -16,7 +15,7 @@ LABEL_MAP = {
 
 def verify_claim(claim: str, evidence: str):
 
-    tokenizer, model = get_model()
+    tokenizer, model = get_verification_model()
 
     inputs = tokenizer(
         evidence,

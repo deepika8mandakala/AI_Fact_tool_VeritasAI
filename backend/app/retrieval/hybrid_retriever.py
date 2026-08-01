@@ -3,6 +3,8 @@ from app.retrieval.web_retriever import wikipedia_search
 from app.retrieval.wikidata_retriever import wikidata_search
 from app.classifier.claim_classifier import classify_claim
 
+SIMILARITY_THRESHOLD = 0.70
+
 
 def hybrid_retrieve(claim: str, top_k: int):
 
@@ -10,28 +12,47 @@ def hybrid_retrieve(claim: str, top_k: int):
 
     faiss_result = retrieve_evidence(claim, top_k)
 
-    evidence = faiss_result["evidence"]
+    evidence = []
 
-    if claim_type == "entity":
+    # Use FAISS only if similarity is high
+    if faiss_result["max_similarity"] < SIMILARITY_THRESHOLD:
+        print("Low similarity -> Using Wikipedia")
 
-        evidence.extend(wikipedia_search(claim))
+        evidence.extend(faiss_result["evidence"])
 
-        wikidata_results = wikidata_search(claim) or []
+    else:
 
-        evidence.extend(wikidata_results)
+        print("Low similarity -> Using Wikipedia")
 
-    elif claim_type == "scientific":
+    # Wikipedia fallback
+    if claim_type in [
+        "entity",
+        "scientific",
+        "medical",
+        "statistical"
+    ]:
 
-        evidence.extend(wikipedia_search(claim))
+        evidence.extend(
+            wikipedia_search(claim)
+        )
 
-    elif claim_type == "medical":
+        wikidata = wikidata_search(claim)
 
-        evidence.extend(wikipedia_search(claim))
+        if wikidata:
+            evidence.extend(wikidata)
 
-    elif claim_type == "statistical":
+    # Remove duplicates
+    unique = {}
 
-        evidence.extend(wikipedia_search(claim))
+    for item in evidence:
 
-    faiss_result["evidence"] = evidence
+        key = (
+            item["document"]["doc_id"],
+            item["document"]["chunk_id"]
+        )
+
+        unique[key] = item
+
+    faiss_result["evidence"] = list(unique.values())
 
     return faiss_result

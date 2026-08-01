@@ -111,3 +111,6 @@ def build_index():
         "articles_processed": len(processed),
         "indexed_documents": len(documents)
     }
+if __name__ == "__main__":
+    result = build_index()
+    print(result)
