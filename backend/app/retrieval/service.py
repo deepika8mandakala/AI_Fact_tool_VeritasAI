@@ -12,10 +12,22 @@ def retrieve_evidence(claim: str, top_k: int = 10):
     # -------------------------
     # Retrieve from FAISS
     # -------------------------
-    retrieved = retrieve(claim, top_k)
+    # Improve retrieval for very short claims
+    query = claim.strip()
 
-    print("Retrieved:", len(retrieved))
-    print(retrieved)
+    if len(query.split()) < 15:
+        query = f"{claim}. {claim}"
+
+    retrieved = retrieve(query, max(top_k, 10))
+    print("="*80)
+    print("TOP RETRIEVED DOCUMENTS")
+
+    for i, item in enumerate(retrieved[:5], 1):
+        print(f"\n{i}.", item["document"]["title"])
+        print(item["score"])
+        print(item["document"]["chunk_text"][:200])
+
+    print("="*80)
 
     # -------------------------
     # Rename score
@@ -41,12 +53,15 @@ def retrieve_evidence(claim: str, top_k: int = 10):
 
     for item in ranked:
 
-        url = item["document"]["url"]
+        key = (
+            item["document"]["url"],
+            item["document"]["chunk_id"]
+        )
 
-        if url in seen:
+        if key in seen:
             continue
 
-        seen.add(url)
+        seen.add(key)
         unique.append(item)
 
     ranked = unique

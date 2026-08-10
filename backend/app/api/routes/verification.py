@@ -1,20 +1,16 @@
 from fastapi import APIRouter
+from pydantic import BaseModel
+
 from app.verification.response_schema import VerificationResponse
-from app.verification.aggregation import aggregate_verdict
-from app.retrieval.service import retrieve_evidence
-from app.explanation.service import generate_explanation
-from app.filtering.service import filter_evidence
-from app.retrieval.hybrid_retriever import hybrid_retrieve
-from app.agreement.service import calculate_agreement
-from app.verification.service import verify_evidence
+from app.verification.pipeline import verify_pipeline
 from app.verification.schemas import (
     VerificationRequest,
     BatchVerificationRequest,
 )
-
-# NEW IMPORT
 from app.database.crud import save_claim
-
+from app.social.service import verify_social_url
+class SocialURLRequest(BaseModel):
+    url: str
 router = APIRouter(
     prefix="/verification",
     tags=["Claim Verification"]
@@ -26,55 +22,53 @@ router = APIRouter(
 )
 def verify(request: VerificationRequest):
 
-    retrieved = hybrid_retrieve(
+    result = verify_pipeline(
         request.claim,
         request.top_k
     )
 
-    filtered = filter_evidence(
-        retrieved["evidence"]
-    )
-
-    verified = verify_evidence(
-        request.claim,
-        filtered
-    )
-    agreement = calculate_agreement(
-        verified
-    )
-    print("VERIFIED RESULTS:")
-    from pprint import pprint
-    pprint(verified)
-    summary = aggregate_verdict(
-        verified
-    )
-    summary["agreement"] = agreement["agreement"]
-
-    summary["agreement_counts"] = agreement["counts"]
-
-    summary["majority_verdict"] = agreement["majority"]
-
-    explanation = generate_explanation(
-        request.claim,
-        summary,
-        verified
-    )
-
-    # SAVE TO DATABASE
     save_claim(
-        claim=request.claim,
-        verdict=summary["final_verdict"],
-        confidence=summary["confidence"],
-        explanation=explanation["summary"],
+        claim=result["claim"],
+        verdict=result["summary"]["final_verdict"],
+        confidence=result["summary"]["confidence"],
+        explanation=result["explanation"],
     )
+
+    return result
+@router.post("/social/verify")
+def verify_social_post(request: SocialURLRequest):
+
+    result = verify_social_url(
+        request.url
+    )
+
+    if not result["results"]:
+        return {
+            "post": result["post"],
+            "claims_found": 0,
+            "results": [],
+            "message": (
+                "No factual claim was detected "
+                "in this post."
+            ),
+        }
+
+    for item in result["results"]:
+
+        verification = item["verification"]
+        summary = verification["summary"]
+
+        save_claim(
+            claim=item["claim"],
+            verdict=summary["final_verdict"],
+            confidence=summary["confidence"],
+            explanation=verification["explanation"],
+        )
 
     return {
-        "claim": request.claim,
-        "summary": summary,
-        "explanation": explanation["summary"],
-        "reasoning": explanation["reasoning"],
-        "filtered_out": len(retrieved["evidence"]) - len(filtered),
-        "results": verified,
+        "post": result["post"],
+        "claims_found": len(result["results"]),
+        "results": result["results"],
     }
 # =====================================================
 # Batch Verification
@@ -93,36 +87,19 @@ def verify_batch(request: BatchVerificationRequest):
             # Retrieve evidence
             # -------------------------
 
-            retrieved = hybrid_retrieve(
+            result = verify_pipeline(
                 claim,
                 request.top_k
             )
 
-            filtered = filter_evidence(
-                retrieved["evidence"]
-            )
-
-            verified = verify_evidence(
-                claim,
-                filtered
-            )
-
-            summary = aggregate_verdict(
-                verified
-            )
-
-            explanation = generate_explanation(
-                claim,
-                summary,
-                verified
-            )
+            summary = result["summary"]
 
             batch_results.append(
                 {
                     "claim": claim,
                     "verdict": summary["final_verdict"],
                     "confidence": summary["confidence"],
-                    "explanation": explanation["summary"],
+                    "explanation": result["explanation"],
                 }
             )
 

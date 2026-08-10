@@ -1,48 +1,76 @@
 import re
 
+from app.ranking.model import ranking_model
+
+
 STOPWORDS = {
-    "the","a","an","is","are","was","were",
-    "to","of","in","on","for","and","with",
-    "by","at","from","that","this"
+    "the", "a", "an", "is", "are", "was", "were",
+    "to", "of", "in", "on", "for", "and", "with",
+    "by", "at", "from", "that", "this"
 }
 
 
 IMPORTANT_TERMS = {
-    "orbit":6,
-    "orbits":6,
-    "revolve":6,
-    "revolves":6,
-    "prime minister":6,
-    "president":6,
-    "capital":5,
-    "located":3,
-    "largest":3,
-    "smallest":3
+    "orbit": 2,
+    "orbits": 2,
+    "revolve": 2,
+    "revolves": 2,
+    "prime minister": 2,
+    "president": 2,
+    "capital": 2,
+    "located": 2,
+    "largest": 2,
+    "smallest": 2,
 }
 
 
 def tokenize(text):
 
     return set(
-        w
-        for w in re.findall(r"[A-Za-z]+", text.lower())
-        if w not in STOPWORDS
+        word
+        for word in re.findall(
+            r"[A-Za-z]+",
+            text.lower()
+        )
+        if word not in STOPWORDS
     )
 
 
-def extract_highlight(text, claim):
+def extract_highlight(text: str, claim: str):
 
     sentences = re.split(
         r'(?<=[.!?])\s+',
         text
     )
 
+    sentences = [
+        sentence.strip()
+        for sentence in sentences
+        if sentence.strip()
+    ]
+
+    if not sentences:
+        return ""
+
+    # ------------------------------------------------
+    # Semantic ranking using existing CrossEncoder
+    # ------------------------------------------------
+
+    pairs = [
+        (claim, sentence)
+        for sentence in sentences
+    ]
+
+    semantic_scores = ranking_model.predict(pairs)
+
     claim_words = tokenize(claim)
 
-    best_sentence = ""
-    best_score = -1
+    ranked = []
 
-    for sentence in sentences:
+    for sentence, semantic_score in zip(
+        sentences,
+        semantic_scores
+    ):
 
         words = tokenize(sentence)
 
@@ -50,20 +78,41 @@ def extract_highlight(text, claim):
             claim_words & words
         )
 
-        score = overlap * 2
+        keyword_bonus = 0
 
         lower = sentence.lower()
 
         for keyword, bonus in IMPORTANT_TERMS.items():
 
             if keyword in lower:
-                score += bonus
+                keyword_bonus += bonus
 
-        if len(sentence) < 30:
-            score -= 2
+        # Semantic relevance is the main signal.
+        # Keyword overlap is only a small supporting signal.
+        final_score = (
+            float(semantic_score)
+            + (overlap * 0.05)
+            + (keyword_bonus * 0.02)
+        )
 
-        if score > best_score:
-            best_score = score
-            best_sentence = sentence
+        ranked.append(
+            (
+                final_score,
+                sentence
+            )
+        )
 
-    return best_sentence.strip()
+    ranked.sort(
+        key=lambda x: x[0],
+        reverse=True
+    )
+
+    best_sentence = ranked[0][1]
+
+    print("=" * 80)
+    print("HIGHLIGHT")
+    print("Claim:", claim)
+    print("Selected:", best_sentence)
+    print("=" * 80)
+
+    return best_sentence

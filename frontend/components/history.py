@@ -36,7 +36,7 @@ def show_history():
 
         st.data_editor(
             df,
-            use_container_width=True,
+            width="stretch",
             disabled=True,
             hide_index=True
         )
@@ -48,7 +48,7 @@ def show_history():
             data=csv,
             file_name="verification_history.csv",
             mime="text/csv",
-            use_container_width=True
+            width="stretch"
         )
 
     else:

@@ -5,9 +5,18 @@ from app.highlighting.service import extract_highlight
 def verify_evidence(claim: str, evidence_list: list):
 
     results = []
+    evidence_list.sort(
+        key=lambda x: (
+            x.get("relevance_score",0),
+            x.get("rerank_score",0)
+        ),
+        reverse=True
+    )
 
+    # evidence_list = evidence_list[:1]
+
+    # for item in evidence_list:
     for item in evidence_list:
-
         print("\nVERIFICATION INPUT")
         print(item.keys())
 
@@ -15,7 +24,11 @@ def verify_evidence(claim: str, evidence_list: list):
             claim,
             item["document"]["chunk_text"]
         )
-
+        print("=" * 80)
+        print("TITLE:", item["document"]["title"])
+        print("VERDICT:", verdict["label"])
+        print("CONFIDENCE:", verdict["confidence"])
+        print("=" * 80)
         results.append(
             {
                 "document": item["document"],

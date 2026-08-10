@@ -1,39 +1,68 @@
-NEWS_KEYWORDS = [
+import re
 
+
+NEWS_DOMAINS = {
+    "bbc.com",
+    "bbc.co.uk",
+    "reuters.com",
+    "apnews.com",
+    "theguardian.com",
+    "sciencedaily.com",
+    "sciencealert.com",
+    "scitechdaily.com",
+    "phys.org",
+    "livescience.com",
+    "nature.com",
+    "nasa.gov",
+    "space.com",
+    "cbc.ca",
+}
+
+
+NEWS_KEYWORDS = {
     "today",
-
     "yesterday",
-
-    "week",
-
-    "month",
-
     "breaking",
-
+    "latest",
+    "recent",
     "announced",
-
-    "said",
-
-    "meeting",
-
+    "announcement",
+    "news",
+    "reported",
+    "report",
+    "study",
+    "research",
+    "scientists",
+    "researchers",
+    "2025",
+    "2026",
     "election",
-
-    "war",
-
+    "earthquake",
     "flood",
+    "war",
+}
 
-    "earthquake"
-]
 
+def is_news_claim(text: str) -> bool:
 
-def is_news_claim(claim):
+    if not text:
+        return False
 
-    claim = claim.lower()
+    text_lower = text.lower()
 
-    return any(
+    # Current/news article URL.
+    for domain in NEWS_DOMAINS:
 
-        word in claim
+        if domain in text_lower:
+            return True
 
-        for word in NEWS_KEYWORDS
+    # News/current-event language.
+    for keyword in NEWS_KEYWORDS:
 
-    )
+        if re.search(
+            rf"\b{re.escape(keyword)}\b",
+            text_lower
+        ):
+            return True
+
+    return False

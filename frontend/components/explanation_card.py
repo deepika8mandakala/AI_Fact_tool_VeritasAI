@@ -3,13 +3,42 @@ import streamlit as st
 
 def show_explanation(result):
 
-    st.header("🤖 AI Reasoning")
+    reasoning = result.get(
+        "reasoning",
+        []
+    )
 
-    for reason in result["reasoning"]:
-        st.success(reason)
+    explanation = result.get(
+        "explanation",
+        "No explanation was provided."
+    )
 
-    st.markdown("---")
+    # =====================================================
+    # AI Reasoning
+    # =====================================================
 
-    st.subheader("AI Explanation")
+    st.markdown("### 🤖 AI Reasoning")
 
-    st.info(result["explanation"])
+    if reasoning:
+
+        for reason in reasoning:
+
+            st.info(
+                f"• {reason}"
+            )
+
+    else:
+
+        st.info(
+            "No additional reasoning was provided."
+        )
+
+    # =====================================================
+    # AI Explanation
+    # =====================================================
+
+    st.markdown("### 💡 AI Explanation")
+
+    st.write(
+        explanation
+    )

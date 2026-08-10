@@ -3,90 +3,176 @@ import streamlit as st
 
 def show_verdict(summary):
 
-    verdict = summary["final_verdict"]
+    verdict = summary.get(
+        "final_verdict",
+        "INSUFFICIENT_EVIDENCE"
+    )
 
-    score = summary["confidence"]
+    confidence = summary.get(
+        "confidence",
+        0.0
+    )
 
-    # -------------------------
+    try:
+        confidence = float(confidence)
+    except (TypeError, ValueError):
+        confidence = 0.0
+
+    confidence = max(
+        0.0,
+        min(confidence, 1.0)
+    )
+
+    # =====================================================
     # Verdict
-    # -------------------------
+    # =====================================================
 
     if verdict == "SUPPORTED":
 
-        st.success("🟢 SUPPORTED")
+        st.success(
+            "🟢 SUPPORTED"
+        )
 
     elif verdict == "CONTRADICTED":
 
-        st.error("🔴 CONTRADICTED")
+        st.error(
+            "🔴 CONTRADICTED"
+        )
 
     else:
 
-        st.warning("🟡 INSUFFICIENT EVIDENCE")
+        st.warning(
+            "🟡 INSUFFICIENT EVIDENCE"
+        )
 
-    # -------------------------
+    # =====================================================
     # Confidence
-    # -------------------------
+    # =====================================================
 
-    score = max(0.0, min(score, 1.0))
+    if verdict == "INSUFFICIENT_EVIDENCE":
 
-    st.progress(score)
+        st.info(
+            "🎯 Confidence: Not enough evidence "
+            "to determine whether the claim is true or false."
+        )
 
-    st.write(
-        f"**Confidence:** {score:.2%}"
-    )
+    else:
 
-    # -------------------------
+        st.progress(
+            confidence,
+            text=f"Confidence: {confidence:.1%}"
+        )
+
+    # =====================================================
     # Conflict Detection
-    # -------------------------
+    # =====================================================
 
-    if summary.get("conflict", False):
+    if summary.get(
+        "conflict",
+        False
+    ):
 
         st.warning(
-            "⚠️ **Conflicting evidence detected.** "
-            "Different evidence sources disagree with each other."
+            "⚠️ Conflicting evidence detected. "
+            "Different sources disagree."
         )
 
-    # -------------------------
-    # Agreement
-    # -------------------------
+    # =====================================================
+    # Verification Statistics
+    # =====================================================
 
-    if "agreement" in summary:
+    agreement = summary.get(
+        "agreement"
+    )
 
-        st.markdown("---")
+    majority = summary.get(
+        "majority_verdict"
+    )
 
-        col1, col2 = st.columns(2)
+    counts = summary.get(
+        "agreement_counts",
+        {}
+    )
 
-        col1.metric(
-            "Agreement",
-            f"{summary['agreement']}%"
+    has_statistics = (
+        agreement is not None
+        or majority is not None
+        or bool(counts)
+    )
+
+    if not has_statistics:
+        return
+
+    st.markdown("---")
+
+    st.subheader(
+        "📊 Verification Summary"
+    )
+
+    # =====================================================
+    # Agreement + Majority
+    # =====================================================
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+
+        agreement_value = (
+            float(agreement)
+            if agreement is not None
+            else 0.0
         )
 
-        col2.metric(
-            "Majority",
-            summary.get(
-                "majority_verdict",
-                verdict
+        st.metric(
+            "Evidence Agreement",
+            f"{agreement_value:.1f}%"
+        )
+
+    with col2:
+
+        st.metric(
+            "Majority Verdict",
+            majority or verdict
+        )
+
+    # =====================================================
+    # Evidence Distribution
+    # =====================================================
+
+    if counts:
+
+        st.markdown(
+            "**Evidence Distribution**"
+        )
+
+        col1, col2, col3 = st.columns(3)
+
+        with col1:
+
+            st.metric(
+                "🟢 Supported",
+                counts.get(
+                    "SUPPORTED",
+                    0
+                )
             )
-        )
 
-    # -------------------------
-    # Evidence Counts
-    # -------------------------
+        with col2:
 
-    if "agreement_counts" in summary:
+            st.metric(
+                "🔴 Contradicted",
+                counts.get(
+                    "CONTRADICTED",
+                    0
+                )
+            )
 
-        st.subheader("Evidence Distribution")
+        with col3:
 
-        counts = summary["agreement_counts"]
-
-        st.write(
-            f"🟢 Supported: {counts.get('SUPPORTED', 0)}"
-        )
-
-        st.write(
-            f"🔴 Contradicted: {counts.get('CONTRADICTED', 0)}"
-        )
-
-        st.write(
-            f"🟡 Insufficient: {counts.get('INSUFFICIENT_EVIDENCE', 0)}"
-        )
+            st.metric(
+                "🟡 Insufficient",
+                counts.get(
+                    "INSUFFICIENT_EVIDENCE",
+                    0
+                )
+            )

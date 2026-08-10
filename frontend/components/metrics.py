@@ -3,55 +3,56 @@ import streamlit as st
 
 def show_metrics(result):
 
-    summary = result["summary"]
-
-    c1, c2, c3 = st.columns(3)
-
-    c1.metric(
-        "Evidence",
-        len(result["results"])
+    summary = result.get(
+        "summary",
+        {}
     )
 
-    c2.metric(
-        "Filtered",
-        result["filtered_out"]
+    evidence_count = len(
+        result.get(
+            "results",
+            []
+        )
     )
 
-    c3.metric(
-        "Confidence",
-        f"{summary['confidence']*100:.1f}%"
+    filtered_count = result.get(
+        "filtered_out",
+        0
     )
 
-    # -------------------------
-    # Agreement (only if present)
-    # -------------------------
+    confidence = summary.get(
+        "confidence",
+        0.0
+    )
 
-    if "agreement" in summary:
+    confidence = max(
+        0.0,
+        min(float(confidence), 1.0)
+    )
 
-        st.markdown("---")
+    # =====================================================
+    # Core Metrics
+    # =====================================================
 
-        st.subheader("Evidence Agreement")
+    col1, col2, col3 = st.columns(3)
 
-        col1, col2 = st.columns(2)
+    with col1:
 
-        col1.metric(
-            "Agreement",
-            f"{summary.get('agreement', 0)}%"
+        st.metric(
+            "📚 Evidence",
+            evidence_count
         )
 
-        col2.metric(
-            "Majority",
-            summary.get(
-                "majority_verdict",
-                summary["final_verdict"]
-            )
+    with col2:
+
+        st.metric(
+            "🔎 Filtered",
+            filtered_count
         )
 
-        st.write("Evidence Distribution")
+    with col3:
 
-        st.json(
-            summary.get(
-                "agreement_counts",
-                {}
-            )
+        st.metric(
+            "🎯 Confidence",
+            f"{confidence:.1%}"
         )

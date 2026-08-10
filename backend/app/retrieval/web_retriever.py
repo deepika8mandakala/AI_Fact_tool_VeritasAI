@@ -1,14 +1,17 @@
 import re
-from typing import Optional, List, Dict, Any
+from typing import List, Dict, Any
+from app.ranking.model import ranking_model
 import spacy
 
 nlp = spacy.load("en_core_web_sm")
+
 try:
     import wikipediaapi
-except ImportError:  # pragma: no cover - informative fallback when package is missing
+except ImportError:
     wikipediaapi = None
 
 from app.retrieval.evidence_schema import create_evidence
+
 
 if wikipediaapi is not None:
     wiki = wikipediaapi.Wikipedia(
@@ -19,56 +22,195 @@ else:
     wiki = None
 
 
-def extract_entity(claim: str):
+def extract_entities(claim: str):
 
     doc = nlp(claim)
 
-    for token in doc:
+    entities = []
+    seen = set()
 
-        if token.dep_ == "nsubj":
+    # -------------------------
+    # Named Entities
+    # -------------------------
 
-            entity = " ".join(
-                t.text
-                for t in token.subtree
-            )
+    for ent in doc.ents:
 
-            return entity
+        text = ent.text.strip()
 
-    return claim
+        if (
+            ent.label_ in {
+                "PERSON",
+                "ORG",
+                "GPE",
+                "LOC",
+                "FAC",
+                "PRODUCT",
+                "EVENT",
+                "WORK_OF_ART",
+            }
+            and len(text) > 2
+            and text.lower() not in seen
+        ):
 
+            entities.append(text)
+            seen.add(text.lower())
+
+    # -------------------------
+    # Important Noun Chunks
+    # -------------------------
+
+    STOP_CHUNKS = {
+        "the",
+        "a",
+        "an",
+        "this",
+        "that",
+        "these",
+        "those",
+        "it",
+        "they",
+        "he",
+        "she",
+        "we",
+        "you",
+        "i",
+        "one",
+        "something",
+        "anything",
+        "everything",
+    }
+
+    for chunk in doc.noun_chunks:
+
+        text = chunk.text.strip()
+
+        if text.lower().startswith("the "):
+            text = text[4:]
+
+        if (
+            len(text) > 2
+            and text.lower() not in STOP_CHUNKS
+            and text.lower() not in seen
+        ):
+
+            entities.append(text)
+            seen.add(text.lower())
+
+    print("=" * 80)
+    print("Extracted Entities:", entities)
+    print("=" * 80)
+
+    return entities
 
 def wikipedia_search(claim: str) -> List[Dict[str, Any]]:
-    """Search Wikipedia for the main entity in a claim and return evidence-like results.
-
-    Raises ImportError if the wikipediaapi package is not installed.
-    """
 
     if wiki is None:
         raise ImportError(
-            "wikipediaapi is not installed. Install it with: pip install wikipedia-api"
+            "Install wikipedia-api using: pip install wikipedia-api"
         )
 
-    entity = extract_entity(claim)
+    entities = extract_entities(claim)
 
-    page = wiki.page(entity)
+    print("=" * 80)
+    print("Entities:", entities)
+    print("=" * 80)
 
-    if not page.exists():
-        return []
+    all_results = []
 
-    document = {
-        "doc_id": page.fullurl,
-        "chunk_id": 0,
-        "title": page.title,
-        "source": "Wikipedia",
-        "url": page.fullurl,
-        "published_at": None,
-        "chunk_text": page.summary,
-    }
+    for entity in entities:
 
-    return [
-        create_evidence(
-            document=document,
-            retrieval_score=1.0,
-            retriever="wikipedia",
+        print("Searching:", entity)
+
+        page = wiki.page(entity)
+
+        try:
+            exists = page.exists()
+        except Exception:
+            exists = False
+
+        print("Exists:", exists)
+
+        if not exists:
+            continue
+
+        # -------------------------
+        # Collect Wikipedia text
+        # -------------------------
+
+        text = page.summary
+
+        for section in page.sections:
+
+            if section.text.strip():
+
+                text += "\n\n"
+
+                text += section.text
+
+        # -------------------------
+        # Split into sentences
+        # -------------------------
+
+        sentences = re.split(
+            r'(?<=[.!?])\s+',
+            text
         )
-    ]
+
+        sentences = [
+            s.strip()
+            for s in sentences
+            if s.strip()
+        ]
+
+        if not sentences:
+            continue
+
+        # -------------------------
+        # Semantic ranking
+        # -------------------------
+
+        pairs = [
+            (claim, sentence)
+            for sentence in sentences
+        ]
+
+        scores = ranking_model.predict(pairs)
+
+        ranked = sorted(
+            zip(scores, sentences),
+            key=lambda x: x[0],
+            reverse=True
+        )
+
+        best_text = "\n".join(
+            sentence
+            for _, sentence in ranked[:10]
+        )
+
+        document = {
+            "doc_id": page.title,
+            "chunk_id": 0,
+            "title": page.title,
+            "source": "Wikipedia",
+            "url": f"https://en.wikipedia.org/wiki/{page.title.replace(' ', '_')}",
+            "published_at": None,
+            "chunk_text": best_text,
+        }
+
+        all_results.append(
+            create_evidence(
+                document=document,
+                retrieval_score=1.0,
+                retriever="wikipedia",
+            )
+        )
+
+    print("=" * 80)
+    print("Wikipedia Results:", len(all_results))
+
+    for item in all_results:
+        print(item["document"]["title"])
+
+    print("=" * 80)
+
+    return all_results
