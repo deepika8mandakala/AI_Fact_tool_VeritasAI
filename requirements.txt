@@ -27,7 +27,7 @@ newspaper3k==0.2.8
 youtube-transcript-api==1.2.2
 yt-dlp==2025.9.5
 
-groq==0.31.0
+groq==1.6.0
 
 rank-bm25==0.2.2
 
