@@ -1,5 +1,5 @@
 # 🛡️ VeritasAI
-
+![VeritasAI Architecture Flow](docs/Veritas_AI_Architecture_Flow.png)
 ## AI-Powered Claim Verification & Real-Time Social Media Monitoring
 
 > **"From social-media claims to evidence-backed verdicts."**
