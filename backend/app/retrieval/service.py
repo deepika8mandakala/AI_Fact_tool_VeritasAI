@@ -9,20 +9,79 @@ def create_index():
 
 def retrieve_evidence(claim: str, top_k: int = 10):
 
-    retrieved = retrieve(claim, top_k)
+    # -------------------------
+    # Retrieve from FAISS
+    # -------------------------
+    # Improve retrieval for very short claims
+    query = claim.strip()
 
-    # Convert FAISS score -> retrieval_score
+    if len(query.split()) < 15:
+        query = f"{claim}. {claim}"
+
+    retrieved = retrieve(query, max(top_k, 10))
+    print("="*80)
+    print("TOP RETRIEVED DOCUMENTS")
+
+    for i, item in enumerate(retrieved[:5], 1):
+        print(f"\n{i}.", item["document"]["title"])
+        print(item["score"])
+        print(item["document"]["chunk_text"][:200])
+
+    print("="*80)
+
+    # -------------------------
+    # Rename score
+    # -------------------------
     for item in retrieved:
-        item["retrieval_score"] = float(item.pop("score"))
+        item["retrieval_score"] = float(
+            item.pop("score")
+        )
 
-    # IMPORTANT: rerank the evidence
-    ranked = rank_evidence(claim, retrieved)
+    # -------------------------
+    # Rank evidence
+    # -------------------------
+    ranked = rank_evidence(
+        claim,
+        retrieved
+    )
 
+    # -------------------------
+    # Remove duplicate URLs
+    # -------------------------
+    unique = []
+    seen = set()
+
+    for item in ranked:
+
+        key = (
+            item["document"]["url"],
+            item["document"]["chunk_id"]
+        )
+
+        if key in seen:
+            continue
+
+        seen.add(key)
+        unique.append(item)
+
+    ranked = unique
+
+    print("Ranked:", len(ranked))
+    print(ranked)
+
+    # -------------------------
+    # Maximum similarity
+    # -------------------------
     max_similarity = max(
-        (item["retrieval_score"] for item in ranked),
+        (
+            item["retrieval_score"]
+            for item in ranked
+        ),
         default=0.0,
     )
-    print(ranked[0].keys() if ranked else "No evidence")
+
+    print("Maximum Similarity:", max_similarity)
+
     return {
         "claim": claim,
         "evidence": ranked,

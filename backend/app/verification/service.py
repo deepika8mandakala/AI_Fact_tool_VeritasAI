@@ -1,43 +1,94 @@
 from app.verification.verifier import verify_claim
-from app.credibility.service import get_source_score
 from app.highlighting.service import extract_highlight
 
 
 def verify_evidence(claim: str, evidence_list: list):
 
     results = []
+    evidence_list.sort(
+        key=lambda x: (
+            x.get("relevance_score",0),
+            x.get("rerank_score",0)
+        ),
+        reverse=True
+    )
 
+    # evidence_list = evidence_list[:1]
+
+    # for item in evidence_list:
     for item in evidence_list:
+        print("\nVERIFICATION INPUT")
+        print(item.keys())
 
         verdict = verify_claim(
             claim,
             item["document"]["chunk_text"]
         )
-
+        print("=" * 80)
+        print("TITLE:", item["document"]["title"])
+        print("VERDICT:", verdict["label"])
+        print("CONFIDENCE:", verdict["confidence"])
+        print("=" * 80)
         results.append(
-        {
-            "document": item["document"],
+            {
+                "document": item["document"],
 
-            "retrieval_score": item.get("retrieval_score", 0.0),
+                "retrieval_score": item.get(
+                    "retrieval_score",
+                    0.0
+                ),
 
-            "rerank_score": item.get(
-                "rerank_score",
-                item.get("retrieval_score", 0.0),
-            ),
+                "rerank_score": item.get(
+                    "rerank_score",
+                    0.0
+                ),
 
-            "source_score": get_source_score(
-                item["document"]["source"]
-            ),
+                "source_score": item.get(
+                    "source_score",
+                    0.60
+                ),
+                "freshness_score": item.get(
+                    "freshness_score",
+                    0.50
+                ),
+                "quality_score": item.get(
+                    "quality_score",
+                    0
+                ),
 
-            "highlight": extract_highlight(
-                item["document"]["chunk_text"],
-                claim
-            ),
+                "quality_label": item.get(
+                    "quality_label",
+                    "Unknown"
+                ),
 
-            "verdict": verdict["label"],
+                "stars": item.get(
+                    "stars",
+                    0
+                ),
+                "bias": item.get(
+                    "bias",
+                    "Unknown"
+                ),
 
-            "confidence": verdict["confidence"]
-        }
-    )
+                "reliability": item.get(
+                    "reliability",
+                    "Unknown"
+                ),
+
+                "category": item.get(
+                    "category",
+                    "Unknown"
+                ),
+
+                "highlight": extract_highlight(
+                    item["document"]["chunk_text"],
+                    claim
+                ),
+
+                "verdict": verdict["label"],
+
+                "confidence": verdict["confidence"]
+            }
+        )
 
     return results

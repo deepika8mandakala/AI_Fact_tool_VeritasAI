@@ -1,8 +1,9 @@
 from app.ranking.reranker import rerank
 
 
-def rank_evidence(claim: str, evidence: list):
+def rank_evidence(claim, evidence):
 
-    ranked = rerank(claim, evidence)
-
-    return ranked[:5]
+    return rerank(
+        claim,
+        evidence
+    )

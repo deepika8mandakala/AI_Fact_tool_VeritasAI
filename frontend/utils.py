@@ -46,3 +46,40 @@ def clear_history():
     )
     response.raise_for_status()
     return response.json()
+def verify_batch(claims, top_k=5):
+
+    payload = {
+        "claims": claims,
+        "top_k": top_k
+    }
+
+    response = requests.post(
+        f"{API_URL}/verification/verify-batch",
+        json=payload
+    )
+
+    response.raise_for_status()
+
+    return response.json()
+def verify_social_post(url):
+    response = requests.post(
+        f"{API_URL}/social/verify",
+        json={"url": url},
+        timeout=120,
+    )
+
+    response.raise_for_status()
+
+    return response.json()
+def verify_social_post(url):
+    response = requests.post(
+        f"{API_URL}/verification/social/verify",
+        json={
+            "url": url
+        },
+        timeout=120,
+    )
+
+    response.raise_for_status()
+
+    return response.json()

@@ -3,8 +3,8 @@ from typing import List
 
 def chunk_text(
     text: str,
-    chunk_size: int = 300,
-    overlap: int = 50
+    chunk_size: int = 180,
+    overlap: int = 40
 ) -> List[str]:
 
     words = text.split()

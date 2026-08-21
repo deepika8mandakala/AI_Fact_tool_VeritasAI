@@ -7,7 +7,14 @@ def collect_all_sources(query: str = "Artificial Intelligence"):
     articles = []
 
     articles.extend(fetch_news(query))
-
     articles.extend(fetch_rss())
 
-    return articles
+    unique = {}
+
+    for article in articles:
+        url = article.get("url")
+
+        if url:
+            unique[url] = article
+
+    return list(unique.values())

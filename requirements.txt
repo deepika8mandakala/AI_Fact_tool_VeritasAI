@@ -1,13 +1,13 @@
 fastapi==0.116.1
 uvicorn[standard]==0.35.0
 
-transformers==4.56.0
-sentence-transformers==5.1.0
+sentence-transformers==3.4.1
+transformers==4.48.3
 torch>=2.7.0
 accelerate>=1.10.0
 
 faiss-cpu==1.12.0
-
+scipy
 spacy==3.8.7
 en-core-web-sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl
 
@@ -27,7 +27,7 @@ newspaper3k==0.2.8
 youtube-transcript-api==1.2.2
 yt-dlp==2025.9.5
 
-groq==0.31.0
+groq==1.6.0
 
 rank-bm25==0.2.2
 
@@ -68,4 +68,8 @@ aiosqlite>=0.20
 huggingface-hub>=0.34
 safetensors>=0.6
 feedparser==6.0.11
-wikipedia-api==0.8.1
+wikipedia-api
+lxml_html_clean
+pymupdf
+easyocr 
+pillow

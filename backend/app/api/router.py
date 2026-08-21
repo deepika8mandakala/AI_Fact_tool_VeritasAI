@@ -7,6 +7,7 @@ from app.api.routes.claims import router as claims_router
 from app.api.routes.retrieval import router as retrieval_router
 from app.api.routes.verification import router as verification_router
 from app.analytics.routes import router as analytics_router
+from app.social.router import router as social_router
 
 api_router = APIRouter()
 
@@ -16,6 +17,7 @@ api_router.include_router(entity_router)
 api_router.include_router(claims_router)
 api_router.include_router(retrieval_router)
 api_router.include_router(verification_router)
+api_router.include_router(social_router)
 api_router.include_router(
     analytics_router,
     prefix="/analytics",
