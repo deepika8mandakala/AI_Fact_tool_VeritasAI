@@ -1,6 +1,6 @@
-**# 🛡️ VeritasAI**
+# 🛡️ VeritasAI
 
-**## AI-Powered Claim Verification & Real-Time Social Media Monitoring**
+## AI-Powered Claim Verification & Real-Time Social Media Monitoring
 
 > ****From social-media claims to evidence-backed verdicts.****
 
