@@ -17,6 +17,7 @@ backend/vector_db/
 
 # Environment
 .env
+hfvenv/
 
 # Streamlit
-.streamlit/
+.streamlit/.python-version
