@@ -1,5 +1,3 @@
-
-````markdown
 # 🛡️ VeritasAI
 
 ## AI-Powered Claim Verification & Real-Time Social Media Monitoring
@@ -28,8 +26,6 @@ Unlike a simple fake-news classifier that produces only a `TRUE` or `FALSE` pred
 - Original source links
 
 VeritasAI also supports **real-time monitoring of public Mastodon posts through Mastodon's WebSocket Streaming API**.
-
----
 
 # 🎯 Project Objective
 
