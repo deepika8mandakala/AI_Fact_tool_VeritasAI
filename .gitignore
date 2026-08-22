@@ -21,3 +21,4 @@ hfvenv/
 
 # Streamlit
 .streamlit/.python-version
+hf-deploy/
