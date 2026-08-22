@@ -1,33 +1,31 @@
 # 🛡️ VeritasAI
+
+### AI-Powered Claim Verification, Evidence Retrieval & Real-Time Social Media Monitoring
+
+> **From social-media claims to evidence-backed verdicts.**
+
+VeritasAI is an evidence-grounded claim verification platform designed to identify factual claims, retrieve relevant evidence, evaluate claim–evidence relationships using Natural Language Inference (NLI), and provide explainable verification results.
+
+Unlike a simple fake-news classifier that returns only `TRUE` or `FALSE`, VeritasAI combines claim detection, entity identification, evidence retrieval, vector search, evidence ranking, evidence filtering, NLI verification, source evaluation, confidence scoring, and AI-generated explanations.
+
+The project also integrates public Mastodon posts and supports real-time hashtag monitoring through Mastodon's WebSocket Streaming API.
+
+---
+
+## 🔗 Project Links
+
+| Resource | Link |
+|---|---|
+| GitHub Repository | https://github.com/deepika8mandakala/AI_Fact_tool_VeritasAI |
+| Hugging Face Gradio Deployment | https://huggingface.co/spaces/deepika-mandakala/Veritas_AI |
+
+---
+
+## 🖼️ Architecture
+
 ![VeritasAI Architecture Flow](docs/Veritas_AI_Architecture_Flow.png)
-## AI-Powered Claim Verification & Real-Time Social Media Monitoring
 
-> **"From social-media claims to evidence-backed verdicts."**
-
-VeritasAI is an evidence-grounded claim verification platform designed to identify factual claims, retrieve relevant evidence, evaluate claim–evidence relationships using Natural Language Inference (NLI), and present explainable verification results.
-
-**Repository:** https://github.com/deepika8mandakala/AI_Fact_tool_VeritasAI
-
-Unlike a simple fake-news classifier that produces only a `TRUE` or `FALSE` prediction, VeritasAI provides:
-
-- 🟢 **SUPPORTED**
-- 🔴 **CONTRADICTED**
-- 🟡 **INSUFFICIENT EVIDENCE**
-- Confidence score
-- Retrieved evidence
-- Evidence agreement
-- Majority verdict
-- Source credibility
-- Evidence quality
-- Freshness
-- Reliability
-- Bias
-- Source category
-- AI reasoning
-- AI explanation
-- Original source links
-
-VeritasAI also supports **real-time monitoring of public Mastodon posts through Mastodon's WebSocket Streaming API**.
+The architecture diagram illustrates the major components of VeritasAI, including the frontend, backend, claim processing pipeline, evidence retrieval, FAISS, DeBERTa NLI verification, explanation generation, and Mastodon monitoring.
 
 ---
 
@@ -35,11 +33,11 @@ VeritasAI also supports **real-time monitoring of public Mastodon posts through 
 
 The objective of VeritasAI is to move beyond simple misinformation classification and build an **evidence-grounded claim verification pipeline**.
 
-Instead of:
+Traditional approach:
 
 ```text
 Social Media Post
-       ↓
+        ↓
    Fake / Real
 ```
 
@@ -47,27 +45,27 @@ VeritasAI follows:
 
 ```text
 Social Media Post
-       ↓
-  Claim Detection
-       ↓
-Entity Identification
-       ↓
+        ↓
+   Claim Detection
+        ↓
+ Entity Identification
+        ↓
  Evidence Retrieval
-       ↓
-  Evidence Ranking
-       ↓
+        ↓
+ Evidence Ranking
+        ↓
  Evidence Filtering
-       ↓
-Natural Language Inference
-       ↓
-SUPPORTED / CONTRADICTED / INSUFFICIENT
-       ↓
-Confidence + Evidence + Explanation
+        ↓
+ Natural Language Inference
+        ↓
+ SUPPORTED / CONTRADICTED / INSUFFICIENT
+        ↓
+ Confidence + Evidence + Explanation
 ```
 
-The central idea is:
+The central design principle is:
 
-> A claim should be evaluated against retrieved evidence rather than classified in isolation.
+> **A claim should be evaluated against retrieved evidence rather than classified in isolation.**
 
 ---
 
@@ -75,9 +73,9 @@ The central idea is:
 
 ### 1. Manual Claim Verification
 
-Users can directly enter a factual claim through the Streamlit interface.
+Users can enter a factual claim directly into the application.
 
-**Example input:**
+**Example:**
 
 ```text
 The movie Titanic was directed by James Cameron and released in 1997.
@@ -88,105 +86,84 @@ The system:
 1. Processes the claim.
 2. Identifies relevant entities.
 3. Retrieves relevant evidence.
-4. Ranks the retrieved evidence.
+4. Ranks candidate evidence.
 5. Filters irrelevant evidence.
 6. Compares the claim with evidence using DeBERTa NLI.
 7. Produces a final verdict.
+8. Generates an explanation.
 
-**Example result:**
+Possible results:
 
 ```text
 🟢 SUPPORTED
-Confidence: 99.5%
+🔴 CONTRADICTED
+🟡 INSUFFICIENT EVIDENCE
 ```
 
-### 2. Social Media Post Verification
+### 2. Evidence-Grounded Verification
 
-Users can paste a public Mastodon post URL. The system automatically follows this pipeline:
+VeritasAI does not treat the retrieval system as the verifier. FAISS is responsible for retrieving candidate evidence, and the NLI model is responsible for evaluating the relationship between evidence and the claim.
 
 ```text
-Mastodon URL
-     ↓
-Mastodon API
-     ↓
-Post Extraction
-     ↓
-Claim Extraction
-     ↓
-Evidence Retrieval
-     ↓
-Evidence Ranking
-     ↓
+Claim
+  ↓
+Embedding
+  ↓
+FAISS Similarity Search
+  ↓
+Candidate Evidence
+  ↓
+Reranking
+  ↓
 Evidence Filtering
-     ↓
+  ↓
 DeBERTa NLI
-     ↓
-Verification Result
+  ↓
+Final Verdict
 ```
 
-**Example claim detected from a Mastodon post:**
-
-```text
-A rare tidal disruption event exposed a massive wandering
-black hole about 30,000 light-years from its galaxy's center.
-```
-
-The system can retrieve the linked article and use it as evidence for verification.
+This separation allows retrieval and verification to perform different responsibilities.
 
 ### 3. 🟢 Supported Claims
 
-When the retrieved evidence supports the claim, VeritasAI produces:
+When the available evidence supports a claim, VeritasAI produces:
 
 ```text
 🟢 SUPPORTED
 ```
 
-The result includes:
-
-- Confidence
-- Evidence
-- Source
-- Retrieval score
-- Rerank score
-- Source credibility
-- Freshness
-- Quality
-- Reliability
-- Bias
-- Explanation
+The result can include: Confidence, Evidence, Source, Retrieval score, Reranking score, Source credibility, Freshness, Quality, Reliability, Bias, and Explanation.
 
 ### 4. 🔴 Contradicted Claims
 
-When retrieved evidence explicitly conflicts with a claim, VeritasAI can produce:
+When retrieved evidence conflicts with a claim, VeritasAI can produce:
 
 ```text
 🔴 CONTRADICTED
 ```
 
-**Example:**
-
-Claim:
+**Example claim:**
 
 ```text
 Titanic was directed by Christopher Nolan and released in 2010.
 ```
 
-Relevant evidence:
+**Relevant evidence:**
 
 ```text
 Titanic was directed by James Cameron and released in 1997.
 ```
 
-The evidence contradicts the claim.
+The NLI verification stage can identify the contradiction.
 
 ### 5. 🟡 Insufficient Evidence
 
-VeritasAI does not force every claim into TRUE or FALSE. If:
+VeritasAI does not force every claim into a binary true/false decision. If:
 
-- relevant evidence cannot be retrieved,
-- evidence is filtered out,
-- the available evidence is insufficient, or
-- model confidence is below the configured threshold,
+- Relevant evidence cannot be retrieved
+- Evidence is filtered out
+- Available evidence is insufficient
+- Model confidence is below the configured threshold
 
 the system returns:
 
@@ -197,118 +174,150 @@ the system returns:
 This distinction is important:
 
 ```text
-INSUFFICIENT EVIDENCE   ≠   FALSE
+INSUFFICIENT EVIDENCE ≠ FALSE
 ```
 
 It means that the available evidence was not sufficient to establish either support or contradiction.
 
-### 6. ⚡ Real-Time Mastodon Monitoring
+---
 
-VeritasAI supports real-time monitoring of public Mastodon posts through Mastodon's WebSocket Streaming API.
+## 🌐 Social Media Verification
+
+VeritasAI supports verification of public Mastodon posts. The workflow is:
+
+```text
+Mastodon URL
+      ↓
+Mastodon API
+      ↓
+Post Extraction
+      ↓
+Claim Extraction
+      ↓
+Evidence Retrieval
+      ↓
+Evidence Ranking
+      ↓
+Evidence Filtering
+      ↓
+DeBERTa NLI
+      ↓
+Verification Result
+```
+
+The system can extract factual-looking claims from a Mastodon post and send them through the same evidence-grounded verification pipeline.
+
+---
+
+## ⚡ Real-Time Mastodon Monitoring
+
+VeritasAI supports real-time monitoring of public Mastodon post events using Mastodon's WebSocket Streaming API.
 
 Users can monitor hashtags such as:
 
 ```text
-#sports  #movies  #science  #love  #technology
+#sports  #movies  #science  #technology  #politics
 ```
 
-The system continuously receives new posts and processes them automatically.
-
-**Architecture:**
+**Live architecture:**
 
 ```text
-                    MASTODON
-                       │
-                       │ WebSocket
-                       ▼
-                HASHTAG STREAM
-                       │
-                       ▼
-                   NEW POST
-                       │
-                       ▼
-                CLAIM DETECTION
-                       │
-                       ▼
-              EVIDENCE RETRIEVAL
-                       │
-                       ▼
-                  DeBERTa NLI
-                       │
-          ┌────────────┼────────────┐
-          ▼            ▼            ▼
-      SUPPORTED    CONTRADICTED   INSUFFICIENT
-          │            │            │
-          └────────────┼────────────┘
-                       ▼
-              STREAMLIT DASHBOARD
+Mastodon
+    │
+    │ WebSocket
+    ▼
+Hashtag Stream
+    │
+    ▼
+New Post
+    │
+    ▼
+Post Extraction
+    │
+    ▼
+Claim Detection
+    │
+    ▼
+Evidence Retrieval
+    │
+    ▼
+FAISS
+    │
+    ▼
+Wikipedia / Wikidata
+    │
+    ▼
+Evidence Filtering
+    │
+    ▼
+DeBERTa NLI
+    │
+    ▼
+Verification Result
+    │
+    ▼
+Streamlit Dashboard
 ```
 
-> **Important clarification:** The current VeritasAI live-monitoring feature is a **real-time social-media post event stream** using Mastodon's WebSocket API. It is **not** a video livestream verification system. Video/audio livestream verification is future scope.
+> **Important clarification:** The current live-monitoring feature processes **real-time social-media post events** through Mastodon's WebSocket API. It is **not a video livestream verification system**. Video and audio livestream verification are future extensions.
 
 ---
 
-## 🧠 AI / NLP Model
+## 🧠 AI / NLP Architecture
 
-VeritasAI uses the pretrained model:
+VeritasAI uses pretrained Transformer models for claim detection and NLI verification.
+
+**Primary NLI Model:**
 
 ```text
 MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli
 ```
 
-The model is used primarily for Natural Language Inference. The verification problem is formulated as:
+The model evaluates:
 
 ```text
 Evidence + Claim
-      ↓
-   DeBERTa
-      ↓
+       ↓
+    DeBERTa
+       ↓
 Entailment / Neutral / Contradiction
-      ↓
+       ↓
 Supported / Insufficient / Contradicted
 ```
 
-### 🤖 Current AI Components
+### 🤖 AI Components
 
 | Component | Technology | Purpose |
 |---|---|---|
-| Claim detection | DeBERTa-v3 zero-shot classification | Identifies factual-looking claims |
-| Evidence embeddings | BAAI/bge-small-en-v1.5 | Converts claims/evidence into 384-dimensional vectors |
-| Retrieval | FAISS | Retrieves semantically similar evidence |
-| Verification | MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli | Determines entailment, neutral, or contradiction |
-| Explanation generation | Groq API + openai/gpt-oss-20b | Produces a concise, human-readable explanation |
+| Claim Detection | DeBERTa-v3 zero-shot classification | Identifies factual-looking claims |
+| Evidence Embeddings | BAAI/bge-small-en-v1.5 | Converts claims/evidence into vectors |
+| Vector Retrieval | FAISS | Retrieves semantically similar evidence |
+| Verification | DeBERTa-v3 MNLI/FEVER/ANLI | Determines entailment, neutral, or contradiction |
+| Explanation | Groq API + `openai/gpt-oss-20b` | Generates human-readable explanations |
 
-**AI API usage:** The core claim verification does not depend on a hosted LLM API. Retrieval, embeddings, and NLI inference are performed by the application's local model stack. The Groq API is used specifically for explanation generation **after** the verification pipeline has already produced a verdict and selected evidence.
-
-Required environment variable:
-
-```env
-GROQ_API_KEY=your_groq_api_key
-```
-
-> The API key must never be committed to GitHub.
+The core verification pipeline does not depend on a hosted LLM API. Retrieval, embeddings, and NLI inference are performed by the application's model stack. Groq is used specifically for **explanation generation after the verification pipeline has produced a verdict and selected evidence**.
 
 ---
 
 ## 🔬 Why DeBERTa?
 
-The core problem in VeritasAI is not simply:
+The core problem is not simply:
 
 > "Is this text fake?"
 
-It is:
+Instead, the problem is:
 
 > "Does the retrieved evidence support, contradict, or fail to establish this claim?"
 
-This is fundamentally a Natural Language Inference problem. Therefore, an NLI-oriented pretrained Transformer was more appropriate than a generic binary fake-news classifier.
+This is fundamentally a Natural Language Inference problem. Therefore, an NLI-oriented Transformer is more appropriate than a generic binary fake-news classifier.
 
-The selected checkpoint was already fine-tuned using:
+The selected checkpoint was fine-tuned using:
 
 - MultiNLI
 - FEVER-NLI
 - ANLI
 
-This allowed the project to leverage an existing NLI model instead of training a large Transformer from scratch.
+This allows VeritasAI to use an existing NLI model instead of training a large Transformer from scratch.
 
 ### 📊 DeBERTa Technical Specifications
 
@@ -316,156 +325,33 @@ This allowed the project to leverage an existing NLI model instead of training a
 |---|---|
 | Model | `MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli` |
 | Architecture | DeBERTa-v3 Base |
-| Parameters | ~183M |
+| Parameters | Approximately 183M |
 | Transformer Layers | 12 |
 | Hidden Size | 768 |
 | Attention Heads | 12 |
 | Intermediate Size | 3,072 |
 | Maximum Sequence Length | 512 tokens |
-| Vocabulary | ~128K |
 | Framework | PyTorch |
 | NLP Framework | Hugging Face Transformers |
 | NLI Training | MultiNLI + FEVER-NLI + ANLI |
-| NLI Pairs | ~763,913 |
 | Current Inference | CPU |
-| Model Loading | `low_cpu_mem_usage=True` |
 | Application Confidence Threshold | 0.60 |
 
-### 📚 Model Training Background
+### Confidence Interpretation
 
-The selected checkpoint was trained/fine-tuned using multiple NLI datasets:
+A result such as:
 
-- **MultiNLI** — Provides broad natural-language inference examples across multiple domains.
-- **FEVER-NLI** — Provides fact-verification-oriented inference examples.
-- **ANLI** — Provides adversarial NLI examples designed to make inference models more robust.
+```text
+97.7% confidence
+```
 
-The combined training data provides a strong foundation for the evidence-versus-claim verification task.
+means the verification model assigned approximately 97.7% probability to the selected verification class **for the retrieved evidence**. It should **not** be interpreted as an objectively calibrated 97.7% probability that the claim itself is true.
 
 ---
 
-## 🔄 Model Selection Journey
+## 🤖 Zero-Shot Claim Detection
 
-The project initially explored an ML-based/custom model approach. However, the available development environment introduced practical constraints:
-
-- Limited laptop specifications
-- GPU limitations
-- Limited GPU memory
-- Training time
-- System memory limitations
-- Local model experimentation constraints
-
-Training a large Transformer model from scratch was therefore not practical for the available environment, so the project shifted toward a pretrained NLI model.
-
-The final model selection was based on:
-
-```text
-Task suitability
-       +
-  NLI capability
-       +
-Fact-verification training
-       +
- Zero-shot capability
-       +
-Local inference feasibility
-       ↓
-   DeBERTa-v3-base
-```
-
-This allowed the project to focus engineering effort on the unique parts of VeritasAI:
-
-- Claim extraction
-- Entity identification
-- Evidence retrieval
-- Vector search
-- Evidence ranking
-- Evidence filtering
-- Source evaluation
-- Social-media integration
-- Real-time monitoring
-- Explainability
-
----
-
-## 💾 Memory / OOM Challenge
-
-Even after switching to a pretrained DeBERTa model, the project encountered memory and OOM issues. The local environment had to handle:
-
-- Transformer model weights
-- PyTorch runtime
-- Tokenizer
-- FAISS
-- FastAPI
-- Streamlit
-- Other Python dependencies
-
-This created significant memory pressure.
-
-### 🛠️ Memory Optimization
-
-**1. Environment Cleanup**
-Unnecessary files and resources were removed from the C drive to free system resources.
-
-**2. Memory-Conscious Model Loading**
-
-```python
-AutoModelForSequenceClassification.from_pretrained(
-    MODEL_NAME,
-    low_cpu_mem_usage=True
-)
-```
-
-**3. Shared Model Instance**
-
-Instead of loading the model for every request:
-
-```python
-_tokenizer = None
-_model = None
-_classifier = None
-```
-
-the model is initialized once and reused:
-
-```text
-First Request
-     ↓
- Load Model
-     ↓
-Keep Model in Memory
-     ↓
- Next Request
-     ↓
- Reuse Model
-```
-
-**4. CPU Inference**
-
-The current zero-shot pipeline uses:
-
-```python
-device = -1
-```
-
-which means CPU inference.
-
-### 🎯 Why Pretrained Instead of Training From Scratch?
-
-The decision was an engineering tradeoff. The objective was not simply to train a new language model — the objective was to build a working evidence-grounded verification platform.
-
-Using a pretrained NLI model allowed development effort to be redirected toward:
-
-```text
-Evidence Retrieval + Claim Detection + Social Integration + Real-Time Monitoring + Explainability
-```
-
-The model choice was therefore driven by: **task suitability + available compute + deployment practicality.**
-
----
-
-## 🤖 Zero-Shot Classification
-
-The DeBERTa model is also used through a Hugging Face zero-shot classification pipeline:
+VeritasAI also uses the DeBERTa model through a Hugging Face zero-shot classification pipeline:
 
 ```python
 pipeline(
@@ -476,117 +362,73 @@ pipeline(
 )
 ```
 
-Zero-shot classification helps the system remain flexible across multiple domains, for example:
+Zero-shot classification helps the system identify factual-looking content across different domains without requiring a separate supervised classifier for every topic.
 
-```text
-#sports  #movies  #science  #love  #technology  #politics
-```
+**Examples:** sports, movies, science, technology, politics
 
-The project does not require a separate supervised classifier for every topic.
-
-### 🔎 Two Roles of the NLP Model
+### Two Roles of the NLP Model
 
 **Role 1 — Claim Detection**
-The zero-shot classification capability helps identify factual-looking content.
 
 ```text
-Social Post → Text Extraction → Claim Detection
+Social Post
+    ↓
+Text Extraction
+    ↓
+Claim Detection
 ```
 
 **Role 2 — Evidence Verification**
-The NLI classifier compares Evidence + Claim and determines Entailment / Neutral / Contradiction, which are mapped to SUPPORTED / INSUFFICIENT_EVIDENCE / CONTRADICTED.
-
----
-
-## 🔍 NLI Verification Configuration
-
-The verifier processes evidence and claim using:
-
-```python
-inputs = tokenizer(
-    evidence,
-    claim,
-    return_tensors="pt",
-    truncation=True,
-    padding=True,
-    max_length=512
-)
-```
-
-Therefore:
 
 ```text
-Premise    = Evidence
-Hypothesis = Claim
+Evidence + Claim
+       ↓
+     DeBERTa
+       ↓
+Entailment / Neutral / Contradiction
 ```
 
-The model produces logits, which are converted into probabilities using:
+These are mapped to:
 
-```python
-probabilities = softmax(
-    outputs.logits,
-    dim=1
-)
+```text
+Entailment    → SUPPORTED
+Neutral       → INSUFFICIENT EVIDENCE
+Contradiction → CONTRADICTED
 ```
-
-The highest probability class becomes the predicted NLI relationship.
-
-### 🏷️ Label Mapping
-
-| Model Output | VeritasAI Label |
-|---|---|
-| Entailment | SUPPORTED |
-| Neutral | INSUFFICIENT_EVIDENCE |
-| Contradiction | CONTRADICTED |
-
-This mapping allows the frontend and backend to work with understandable verification terminology.
-
-### 📈 Confidence Threshold
-
-VeritasAI applies an application-level confidence threshold of `0.60`:
-
-```python
-if confidence < 0.60:
-    label = "INSUFFICIENT_EVIDENCE"
-```
-
-This prevents low-confidence predictions from being presented as definitive verification.
-
-> **Important interpretation:** A result such as `97.7% confidence` means the verification model assigned approximately 97.7% confidence to the selected verification class **for the retrieved evidence**. It should not be interpreted as an objectively calibrated 97.7% probability that the claim is true.
 
 ---
 
 ## 🔎 Evidence Retrieval Architecture
 
-VeritasAI uses an evidence-first architecture. Instead of directly predicting whether a claim is true, the system first retrieves relevant evidence.
+VeritasAI uses an evidence-first architecture.
 
 ```text
 Claim
- ↓
+  ↓
 Entity Extraction
- ↓
+  ↓
 Query Generation
- ↓
+  ↓
 Vector Retrieval
- ↓
+  ↓
 FAISS
- ↓
+  ↓
 Wikipedia / Wikidata
- ↓
+  ↓
 Candidate Evidence
- ↓
+  ↓
 Reranking
- ↓
+  ↓
 Filtering
- ↓
+  ↓
 DeBERTa NLI
- ↓
+  ↓
 Final Verdict
 ```
 
-### 🧮 FAISS Vector Search
+### FAISS
 
-FAISS is used as the vector similarity search layer. Its responsibility is **retrieval only**:
+FAISS is used as the vector similarity search layer. Its responsibility is **retrieval**, not truth determination.
 
 ```text
 Claim / Query
@@ -602,56 +444,40 @@ Reranking
 Filtering
 ```
 
-FAISS does not determine whether a claim is true — it retrieves candidate evidence. The NLI model is responsible for evaluating the relationship between the evidence and the claim.
-
-### 📦 Current Evidence Index
-
-During runtime, the system successfully loaded:
-
-```text
-Loaded FAISS index with 449 vectors
-Loaded 449 metadata records
-```
-
-The current prototype therefore operates using **449 vectors** and **449 metadata records**.
+The NLI model is responsible for evaluating the relationship between evidence and the claim.
 
 ### 📚 Knowledge Sources
 
-The current prototype uses **Wikipedia** and **Wikidata** as knowledge/evidence sources. These sources form part of the retrieval layer, and the system uses retrieved content to provide evidence for NLI verification.
+The current prototype uses **Wikipedia** and **Wikidata** as knowledge and evidence sources. The retrieval layer obtains candidate evidence from these sources before verification.
 
 ### 🧾 Evidence Metadata
 
-Each evidence item can contain:
+Evidence items can contain:
 
 - Document ID, Chunk ID
 - Title, Source, URL
 - Published date, Chunk text
 - Retrieval score, Rerank score, Source score
-- Freshness score, Quality score, Quality label, Stars
-- Bias, Reliability, Category
+- Freshness score, Quality score, Quality label
+- Reliability, Bias, Category
 - Highlight, Verdict, Confidence
 
-### ⭐ Evidence Quality
+---
 
-The frontend presents evidence quality information such as Credibility, Freshness, Quality Score, Quality Label, Reliability, Bias, Category, and Published Date. This makes the verification process more transparent — the system does not simply show `SUPPORTED`, it also shows:
+## 📊 Verification Metrics
 
-- **Why?**
-- **Where did the evidence come from?**
-- **How relevant was it?**
-- **What is the source quality?**
+The application can expose metrics including:
 
-### 📊 Verification Metrics
-
-The dashboard can display:
-
-- Evidence, Filtered, Confidence
-- Evidence Agreement, Majority Verdict
-- Supported Count, Contradicted Count, Insufficient Count
+- Evidence count, Filtered evidence, Confidence
+- Evidence agreement, Majority verdict
+- Supported count, Contradicted count, Insufficient count
+- Source credibility, Freshness, Quality, Reliability, Bias
 
 **Example:**
 
 ```text
 Evidence Agreement: 100%
+
 Supported: 1
 Contradicted: 0
 Insufficient: 0
@@ -661,7 +487,7 @@ Insufficient: 0
 
 ## 🧠 Explainability
 
-Explainability is a core design principle.
+Explainability is a core design principle of VeritasAI.
 
 **Traditional approach:**
 
@@ -672,129 +498,112 @@ POST → FAKE
 **VeritasAI:**
 
 ```text
-POST → CLAIM → EVIDENCE → VERDICT → CONFIDENCE → SOURCE → EXPLANATION
+POST
+ ↓
+CLAIM
+ ↓
+EVIDENCE
+ ↓
+VERDICT
+ ↓
+CONFIDENCE
+ ↓
+SOURCE
+ ↓
+EXPLANATION
 ```
 
-The system provides an evidence-backed reasoning trail rather than only a classification label.
+The system therefore provides an evidence-backed reasoning trail instead of only a classification label.
 
 ---
 
-## 🌐 Why Mastodon?
+## 🖥️ Frontend Applications
 
-Mastodon was selected for the social-media integration prototype because it provides:
+VeritasAI has two frontend/deployment interfaces.
 
-- A developer-friendly API
-- Public post retrieval
-- Hashtag-based streams
-- WebSocket streaming
-- Programmatic access to post events
-- A suitable environment for prototyping real-time social-media monitoring
+### 1. Streamlit Application
 
-### 🔗 Mastodon URL Verification
-
-```text
-Public Mastodon URL
-        ↓
- Mastodon REST API
-        ↓
-   Post Content
-        ↓
-HTML/Text Extraction
-        ↓
-  Claim Detection
-        ↓
- Evidence Retrieval
-        ↓
-    DeBERTa NLI
-        ↓
-      Verdict
-```
-
-The post extractor handles Mastodon's HTML-formatted content and extracts usable text.
-
-### ⚡ Mastodon WebSocket Streaming
-
-The live stream implementation:
-
-1. Retrieves the Mastodon streaming host.
-2. Creates a WebSocket connection.
-3. Authenticates using an access token.
-4. Subscribes to a hashtag.
-5. Receives `update` events.
-6. Parses the event payload.
-7. Extracts the post.
-8. Sends it for claim detection and verification.
-9. Continues processing subsequent posts.
-10. Reconnects when the connection is lost.
-
-**Example runtime:**
-
-```text
-Connecting to Mastodon...
-Connected successfully.
-Waiting for new #sports posts...
-```
-
-### 🔄 WebSocket Reconnection
-
-Real-time connections can be interrupted. The implementation handles this using reconnect logic:
-
-```text
-WebSocket Connected
-       ↓
-  Receive Posts
-       ↓
- Connection Lost
-       ↓
-      Wait
-       ↓
-    Reconnect
-       ↓
-Resume Monitoring
-```
-
-This prevents a temporary network/WebSocket failure from permanently stopping the monitoring process.
-
----
-
-## 📱 Streamlit Frontend
-
-The frontend is implemented using **Streamlit** and provides:
+The full project frontend is implemented using Streamlit. The Streamlit application supports:
 
 **Verification**
 - Manual claim verification
 - Mastodon post verification
+- Evidence display, verdict display, confidence, explanation
 
 **Live Monitoring**
 - Hashtag monitoring
-- Start / stop monitoring
-- Live claim detection, verdicts, and confidence
+- Start/stop monitoring
+- Live claim detection, live verdicts, live confidence
+- Live statistics
 
 **Evidence**
-- Evidence cards, source badge
+- Evidence cards, source information
 - Credibility, freshness, quality, reliability, bias, category
-- Evidence highlight, original source link
+- Evidence highlights, original source links
 
 **Analytics**
 - Posts, claims, supported, contradicted, insufficient
 - Verification history, live statistics
 
-### 📊 Live Dashboard
+### 2. Gradio Hugging Face Deployment
 
-The live dashboard displays statistics such as Posts, Claims, Supported, Contradicted, and Insufficient. Individual live claims are displayed with:
+A lightweight Gradio interface is provided for public deployment through Hugging Face Spaces.
 
-- Author, Timestamp
-- Detected Claim, Verdict, Confidence
-- Explanation, Evidence
+**Deployment:** https://huggingface.co/spaces/deepika-mandakala/Veritas_AI
+
+The Gradio deployment focuses on the core claim-verification workflow:
+
+```text
+User Claim
+    ↓
+Verification Pipeline
+    ↓
+Evidence Retrieval
+    ↓
+DeBERTa NLI
+    ↓
+Verdict + Confidence
+    ↓
+Explanation + Evidence
+```
+
+The Gradio deployment provides:
+
+- Manual claim verification
+- Evidence retrieval
+- Verification verdict
+- Confidence score
+- Reasoning
+- Evidence display
+- Groq-powered explanation
+
+### Deployment Distinction
+
+The two interfaces serve different purposes:
+
+| Capability | Streamlit | Gradio |
+|---|---|---|
+| Manual claim verification | ✅ | ✅ |
+| Evidence display | ✅ | ✅ |
+| Verdict | ✅ | ✅ |
+| Confidence | ✅ | ✅ |
+| Explanation | ✅ | ✅ |
+| Mastodon URL verification | ✅ | Project-dependent |
+| Real-time Mastodon monitoring | ✅ | Not currently exposed |
+| WebSocket live monitoring | ✅ | Not currently exposed |
+| Analytics dashboard | ✅ | Limited |
+| Public Hugging Face deployment | Project deployment | ✅ |
+
+The **Streamlit application remains the full-featured project interface**, while the **Gradio application provides the publicly accessible Hugging Face deployment for the core verification workflow**.
 
 ---
 
 ## ⚙️ FastAPI Backend
 
-The backend is implemented using **FastAPI**. Responsibilities include:
+The backend is implemented using FastAPI. Responsibilities include:
 
 - Claim verification
-- Social post verification
+- Social-media verification
 - Batch verification
 - Evidence retrieval
 - NLI inference
@@ -803,7 +612,7 @@ The backend is implemented using **FastAPI**. Responsibilities include:
 - Live monitoring
 - Analytics
 
-### 🔌 API Endpoints
+### API Endpoints
 
 | Purpose | Endpoint |
 |---|---|
@@ -817,277 +626,368 @@ The backend is implemented using **FastAPI**. Responsibilities include:
 | Analytics Statistics | `GET /analytics/stats` |
 | Verification History | `GET /analytics/history` |
 
-### 🗄️ Database
+---
 
-The backend uses **SQLAlchemy** for database interaction. Verification information can be persisted, including Claim, Verdict, Confidence, and Explanation. This supports verification history, analytics, and dashboard statistics.
+## 🗄️ Database
+
+The backend uses SQLAlchemy for database interaction. Verification information can be persisted, including Claim, Verdict, Confidence, Explanation, Verification history, and Analytics information.
 
 ---
 
-## 🏗️ Workflow Architecture Diagram
+## 📱 Mastodon Integration
 
-The following diagram summarizes the end-to-end VeritasAI workflow, including the Streamlit frontend, FastAPI backend, claim processing, evidence retrieval, FAISS, DeBERTa NLI verification, Groq-powered explanation generation, and the Mastodon live-monitoring path.
+Mastodon was selected for the social-media prototype because it provides:
 
-> **Note:** Place the architecture image at `docs/veritasai_architecture.png` before publishing the README.
+- Public post retrieval
+- Developer-friendly APIs
+- Hashtag-based streams
+- WebSocket streaming
+- Programmatic access to post events
 
-### 🏗️ High-Level Architecture
+### Mastodon URL Verification
 
 ```text
-                         ┌───────────────────┐
-                         │       USER        │
-                         └─────────┬─────────┘
-                                   │
-                                   ▼
-                         ┌───────────────────┐
-                         │    STREAMLIT      │
-                         │    FRONTEND       │
-                         └─────────┬─────────┘
-                                   │
-                                   ▼
-                         ┌───────────────────┐
-                         │      FASTAPI      │
-                         │      BACKEND      │
-                         └─────────┬─────────┘
-                                   │
-             ┌─────────────────────┼─────────────────────┐
-             │                     │                     │
-             ▼                     ▼                     ▼
-     Claim Verification    Social Verification    Live Monitoring
-             │                     │                     │
-             └─────────────────────┼─────────────────────┘
-                                   ▼
-                         ┌───────────────────┐
-                         │  CLAIM DETECTION  │
-                         └─────────┬─────────┘
-                                   ▼
-                         ┌───────────────────┐
-                         │ ENTITY EXTRACTION │
-                         └─────────┬─────────┘
-                                   ▼
-                         ┌───────────────────┐
-                         │ EVIDENCE RETRIEVAL│
-                         └─────────┬─────────┘
-                                   ▼
-                         ┌───────────────────┐
-                         │       FAISS       │
-                         └─────────┬─────────┘
-                                   ▼
-                  ┌─────────────────────────────┐
-                  │ Wikipedia / Wikidata        │
-                  └──────────────┬──────────────┘
-                                 ▼
-                         ┌───────────────────┐
-                         │ EVIDENCE FILTERING│
-                         └─────────┬─────────┘
-                                   ▼
-                         ┌───────────────────┐
-                         │   DeBERTa NLI     │
-                         └─────────┬─────────┘
-                                   ▼
-                 ┌─────────────────┼─────────────────┐
-                 ▼                 ▼                 ▼
+Public Mastodon URL
+        ↓
+Mastodon REST API
+        ↓
+Post Content
+        ↓
+HTML/Text Extraction
+        ↓
+Claim Detection
+        ↓
+Evidence Retrieval
+        ↓
+DeBERTa NLI
+        ↓
+Verdict
+```
+
+### WebSocket Monitoring
+
+The live monitoring implementation:
+
+1. Retrieves the Mastodon streaming host.
+2. Creates a WebSocket connection.
+3. Authenticates using the configured access token.
+4. Subscribes to a hashtag stream.
+5. Receives update events.
+6. Parses the event payload.
+7. Extracts the post.
+8. Detects claims.
+9. Verifies detected claims.
+10. Continues processing subsequent posts.
+11. Reconnects when the connection is interrupted.
+
+---
+
+## 🔄 WebSocket Reconnection
+
+Real-time connections can be interrupted. The streaming implementation handles reconnection:
+
+```text
+WebSocket Connected
+       ↓
+Receive Posts
+       ↓
+Connection Lost
+       ↓
+Wait
+       ↓
+Reconnect
+       ↓
+Resume Monitoring
+```
+
+This helps prevent temporary WebSocket/network failures from permanently stopping monitoring.
+
+---
+
+## 🏗️ High-Level Architecture
+
+```text
+                         ┌─────────────────┐
+                         │      USER       │
+                         └────────┬────────┘
+                                  │
+                                  ▼
+                         ┌─────────────────┐
+                         │    STREAMLIT    │
+                         │    FRONTEND     │
+                         └────────┬────────┘
+                                  │
+                                  ▼
+                         ┌─────────────────┐
+                         │     FASTAPI     │
+                         │     BACKEND     │
+                         └────────┬────────┘
+                                  │
+             ┌────────────────────┼────────────────────┐
+             │                    │                    │
+             ▼                    ▼                    ▼
+      Claim Verification   Social Verification   Live Monitoring
+             │                    │                    │
+             └────────────────────┼────────────────────┘
+                                  ▼
+                         ┌─────────────────┐
+                         │ CLAIM DETECTION │
+                         └────────┬────────┘
+                                  ▼
+                         ┌─────────────────┐
+                         │ENTITY EXTRACTION│
+                         └────────┬────────┘
+                                  ▼
+                         ┌──────────────────┐
+                         │EVIDENCE RETRIEVAL│
+                         └────────┬─────────┘
+                                  ▼
+                         ┌─────────────────┐
+                         │      FAISS      │
+                         └────────┬────────┘
+                                  ▼
+                         ┌──────────────────┐
+                         │Wikipedia/Wikidata│
+                         └────────┬─────────┘
+                                  ▼
+                         ┌──────────────────┐
+                         │EVIDENCE FILTERING│
+                         └────────┬─────────┘
+                                  ▼
+                         ┌─────────────────┐
+                         │   DeBERTa NLI   │
+                         └────────┬────────┘
+                                  ▼
+                 ┌────────────────┼────────────────┐
+                 ▼                ▼                ▼
              SUPPORTED       CONTRADICTED     INSUFFICIENT
-                 │                 │                 │
-                 └─────────────────┼─────────────────┘
-                                   ▼
-                         ┌───────────────────┐
-                         │ EXPLANATION +     │
-                         │ CONFIDENCE        │
-                         └─────────┬─────────┘
-                                   ▼
-                         ┌───────────────────┐
-                         │    STREAMLIT      │
-                         └───────────────────┘
-```
-
-### ⚡ Real-Time Architecture
-
-```text
-                   MASTODON
-                      │
-                      │ WebSocket
-                      ▼
-                HASHTAG STREAM
-                      │
-                      ▼
-                  NEW POST
-                      │
-                      ▼
-              POST EXTRACTION
-                      │
-                      ▼
-              CLAIM DETECTION
-                      │
-                      ▼
-             EVIDENCE RETRIEVAL
-                      │
-                      ▼
-                    FAISS
-                      │
-                      ▼
-             Wikipedia/Wikidata
-                      │
-                      ▼
-               EVIDENCE FILTER
-                      │
-                      ▼
-                DeBERTa NLI
-                      │
-                      ▼
-              VERIFICATION RESULT
-                      │
-                      ▼
-             STREAMLIT DASHBOARD
+                 │                │                │
+                 └────────────────┼────────────────┘
+                                  ▼
+                         ┌─────────────────┐
+                         │CONFIDENCE +     │
+                         │EVIDENCE         │
+                         └────────┬────────┘
+                                  ▼
+                         ┌─────────────────┐
+                         │   EXPLANATION   │
+                         └────────┬────────┘
+                                  ▼
+                         ┌─────────────────┐
+                         │    FRONTEND     │
+                         └─────────────────┘
 ```
 
 ---
 
-## 🧪 Example Demos
+## 🔬 Model Selection Journey
 
-### Example Demo — Movie Claim
+The project initially explored a custom ML approach. However, development constraints included:
 
-Test claim used during live monitoring:
+- Limited laptop specifications
+- Limited GPU resources
+- Limited VRAM
+- Training time
+- System memory limitations
+- Local model experimentation constraints
+
+Training a large Transformer from scratch was therefore not practical. The project shifted toward a pretrained NLI model. The selection was based on:
+
+```text
+Task Suitability
+      +
+NLI Capability
+      +
+Fact-Verification Training
+      +
+Zero-Shot Capability
+      +
+Local Inference Feasibility
+      ↓
+DeBERTa-v3
+```
+
+This allowed engineering effort to focus on:
+
+- Claim extraction
+- Entity identification
+- Evidence retrieval
+- Vector search
+- Evidence ranking
+- Evidence filtering
+- Source evaluation
+- Social-media integration
+- Real-time monitoring
+- Explainability
+
+---
+
+## 💾 Memory and OOM Optimization
+
+The project encountered memory pressure while loading Transformer models alongside FAISS, FastAPI, Streamlit, and other dependencies. Several optimizations were used.
+
+**Memory-Conscious Model Loading**
+
+```python
+AutoModelForSequenceClassification.from_pretrained(
+    MODEL_NAME,
+    low_cpu_mem_usage=True
+)
+```
+
+**Shared Model Instance**
+
+Instead of loading the model for every request:
+
+```text
+First Request
+     ↓
+Load Model
+     ↓
+Keep Model in Memory
+     ↓
+Next Request
+     ↓
+Reuse Model
+```
+
+**CPU Inference**
+
+The current zero-shot pipeline uses CPU inference:
+
+```python
+device = -1
+```
+
+This reduces dependency on a dedicated GPU for the current implementation.
+
+---
+
+## 🧪 Example Verification
+
+### Supported Claim
 
 ```text
 The movie Titanic was directed by James Cameron and released in 1997.
 ```
 
-VeritasAI detected the claim and retrieved relevant Wikipedia evidence.
+Expected result:
 
 ```text
 🟢 SUPPORTED
-Confidence: ~99.5%
 ```
 
-The system also displayed an explanation stating that the evidence from Wikipedia supports the claim.
+The system retrieves relevant evidence and evaluates the evidence against the claim.
 
-### Example Demo — Science Claim
+### Contradicted Claim
 
 ```text
-A rare tidal disruption event exposed a massive wandering black hole
-about 30,000 light-years from its galaxy's center.
+Titanic was directed by Christopher Nolan and released in 2010.
 ```
+
+Expected behavior:
 
 ```text
-Mastodon Post → Claim Detection → Article Retrieval → Evidence → DeBERTa NLI → SUPPORTED
+🔴 CONTRADICTED
 ```
 
-```text
-🟢 SUPPORTED
-Confidence: ~97.7%
-```
+depending on the retrieved evidence.
 
-### Example Demo — Insufficient Evidence
+### Insufficient Evidence
 
-The system was also tested with claims for which relevant evidence was unavailable.
+An obscure or unsupported claim may produce:
 
 ```text
 🟡 INSUFFICIENT EVIDENCE
-Confidence: 0.0%
-Evidence: 0
-Filtered: 0
-
-Reason: No relevant evidence was retrieved.
 ```
 
-This demonstrates that VeritasAI does not force unsupported claims into a binary true/false decision.
+For example:
+
+```text
+Evidence: 0
+Filtered: 0
+Confidence: 0.0%
+```
+
+This demonstrates that the system does not force every claim into a binary true/false decision.
 
 ---
 
 ## 🛠️ Engineering Challenges
 
-### 1. Initial ML Approach
+### 1. ML Model Selection
 
-The project initially explored a custom ML-based approach. The available laptop/GPU environment made large-scale model training and repeated experimentation difficult.
+Large-scale custom model training was difficult because of limited local compute.
 
-- **Challenge:** Limited GPU resources, limited VRAM, limited laptop specifications, memory pressure, training time.
-- **Decision:** Move to a pretrained NLI Transformer.
+**Solution:** Use a pretrained NLI Transformer and focus engineering effort on retrieval, verification, explainability, and social integration.
 
-### 2. DeBERTa OOM Issues
+### 2. DeBERTa Memory Usage
 
-Even after selecting a pretrained model, DeBERTa caused memory pressure/OOM problems.
+Running PyTorch, Transformer models, FAISS, FastAPI, and Streamlit together created memory pressure.
 
-- **Cause:** The development environment had to simultaneously handle PyTorch + Transformer Model + Tokenizer + FAISS + FastAPI + Streamlit + other dependencies.
-- **Solution:** Cleaned unnecessary files from the C drive, freed system resources, restarted the development environment, used `low_cpu_mem_usage=True`, implemented shared model loading, avoided repeated model initialization, and used CPU inference where necessary.
+**Solution:** Memory-conscious loading, shared model instances, CPU inference, environment cleanup, and avoiding repeated model initialization.
 
-### 3. Claim Extraction Issues
+### 3. Claim Extraction
 
-At an early stage, social posts containing article headlines and URLs were sometimes processed as having:
+Social posts containing headlines and URLs could initially result in:
 
 ```text
 CLAIMS FOUND: 0
 ```
 
-The extraction pipeline was improved to handle article-linked posts and headline-style factual claims. Example successful extraction after the fix:
+The claim extraction pipeline was improved to better handle article-linked posts and headline-style factual claims.
+
+### 4. Evidence Retrieval
+
+Not every search result is necessarily useful evidence. Therefore, VeritasAI uses:
 
 ```text
-A rare tidal disruption event exposed a massive wandering black hole
-about 30,000 light-years from its galaxy's center.
+Retrieval
+    ↓
+Reranking
+    ↓
+Filtering
+    ↓
+Verification
 ```
-
-### 4. Evidence Retrieval Issues
-
-Not every retrieved search result is necessarily relevant — a query could return a Wikipedia result that is semantically related but not actually useful for the claim. The pipeline therefore includes:
-
-```text
-Retrieval → Reranking → Filtering → Verification
-```
-
-This reduces the possibility of irrelevant documents being treated as evidence.
 
 ### 5. Mastodon Authentication
 
-The live monitoring feature initially failed because the Mastodon access token was not configured.
-
-```text
-MASTODON_ACCESS_TOKEN is not set.
-```
-
-After configuring the required token:
-
-```text
-Connected successfully.
-Waiting for new #sports posts...
-```
-
-The live monitoring pipeline then successfully processed new posts.
-
-### 6. WebSocket Disconnections
-
-During testing, the Mastodon WebSocket occasionally disconnected:
-
-```text
-WebSocketConnectionClosedException
-Connection to remote host was lost.
-```
-
-The streaming implementation includes reconnect behavior:
-
-```text
-Disconnected → Wait → Reconnect → Continue monitoring
-```
-
-### 7. Frontend / Backend Integration
-
-During development, frontend imports and backend utility organization caused errors such as:
-
-```text
-ImportError: cannot import name 'get_stats' from 'utils'
-```
-
-The project was progressively reorganized into clearer modules for API utilities, frontend components, analytics, verification, and social services.
-
----
-
-## 🔐 Security Considerations
-
-Credentials should never be hard-coded into the repository. Sensitive configuration should be stored in environment variables:
+The live-monitoring feature requires a Mastodon access token.
 
 ```env
 MASTODON_INSTANCE=https://mastodon.social
 MASTODON_ACCESS_TOKEN=YOUR_TOKEN
 ```
 
-The actual access token should never be committed to GitHub.
+### 6. WebSocket Disconnections
+
+Temporary network interruptions can disconnect the WebSocket stream. Reconnect logic is used to restore monitoring.
+
+---
+
+## 🔐 Security
+
+Never commit API keys, access tokens, passwords, or other secrets to GitHub. Use environment variables.
+
+```env
+GROQ_API_KEY=your_groq_api_key
+
+MASTODON_INSTANCE=https://mastodon.social
+MASTODON_ACCESS_TOKEN=YOUR_MASTODON_ACCESS_TOKEN
+
+NEWS_API_KEY=YOUR_NEWS_API_KEY
+YOUTUBE_API_KEY=YOUR_YOUTUBE_API_KEY
+```
+
+For Hugging Face Spaces and other cloud deployments, configure secrets through the platform's **Secrets / Environment Variables** settings.
+
+Do not commit:
+
+```text
+.env
+.env.*
+```
 
 ---
 
@@ -1096,20 +996,23 @@ The actual access token should never be committed to GitHub.
 | Layer | Technology |
 |---|---|
 | Programming Language | Python |
-| Frontend | Streamlit |
+| Full Frontend | Streamlit |
+| Public Deployment UI | Gradio |
 | Backend | FastAPI |
 | API | REST / JSON |
 | Deep Learning | PyTorch |
 | NLP | Hugging Face Transformers |
-| NLI Model | DeBERTa-v3-base |
-| Zero-Shot Classification | Hugging Face Pipeline |
+| NLI Model | DeBERTa-v3 |
+| Claim Detection | Hugging Face Zero-Shot Pipeline |
+| Embeddings | BAAI/bge-small-en-v1.5 |
 | Vector Search | FAISS |
 | Knowledge Sources | Wikipedia + Wikidata |
 | Social Platform | Mastodon |
 | Social API | Mastodon REST API |
 | Real-Time Streaming | Mastodon WebSocket API |
 | Database Layer | SQLAlchemy |
-| Environment | Python Virtual Environment |
+| Explanation | Groq API |
+| Public Deployment | Hugging Face Spaces |
 
 ---
 
@@ -1119,65 +1022,60 @@ The actual access token should never be committed to GitHub.
 VeritasAI/
 │
 ├── backend/
+│   ├── app/
+│   │   ├── api/
+│   │   │   ├── routes/
+│   │   │   │   ├── verification.py
+│   │   │   │   ├── retrieval.py
+│   │   │   │   ├── claims.py
+│   │   │   │   └── entity.py
+│   │   │   └── router.py
+│   │   │
+│   │   ├── verification/
+│   │   │   ├── pipeline.py
+│   │   │   ├── verifier.py
+│   │   │   ├── model.py
+│   │   │   ├── schemas.py
+│   │   │   └── response_schema.py
+│   │   │
+│   │   ├── claim_detection/
+│   │   ├── entity_recognition/
+│   │   ├── retrieval/
+│   │   ├── ranking/
+│   │   ├── filtering/
+│   │   ├── preprocessing/
+│   │   ├── credibility/
+│   │   ├── explanation/
+│   │   ├── social/
+│   │   │   ├── mastodon_client.py
+│   │   │   ├── mastodon_stream.py
+│   │   │   ├── post_extractor.py
+│   │   │   ├── live_monitor.py
+│   │   │   └── service.py
+│   │   ├── analytics/
+│   │   ├── database/
+│   │   ├── url/
+│   │   ├── pdf/
+│   │   ├── image/
+│   │   └── main.py
 │   │
-│   └── app/
-│       │
-│       ├── api/
-│       │   ├── routes/
-│       │   │   ├── verification.py
-│       │   │   ├── retrieval.py
-│       │   │   ├── claims.py
-│       │   │   ├── entity.py
-│       │   │   └── ...
-│       │   │
-│       │   └── router.py
-│       │
-│       ├── verification/
-│       │   ├── pipeline.py
-│       │   ├── verifier.py
-│       │   ├── model.py
-│       │   ├── schemas.py
-│       │   └── response_schema.py
-│       │
-│       ├── models/
-│       │   └── deberta.py
-│       │
-│       ├── retrieval/
-│       │   └── vector_store.py
-│       │
-│       ├── social/
-│       │   ├── mastodon_client.py
-│       │   ├── mastodon_stream.py
-│       │   ├── post_extractor.py
-│       │   ├── service.py
-│       │   ├── router.py
-│       │   └── ...
-│       │
-│       ├── analytics/
-│       ├── database/
-│       ├── url/
-│       ├── pdf/
-│       ├── image/
-│       │
-│       └── main.py
+│   └── requirements.txt
 │
 ├── frontend/
-│   │
 │   ├── components/
-│   │   ├── analytics.py
-│   │   ├── single_verification.py
-│   │   ├── verdict_card.py
-│   │   ├── metrics.py
-│   │   ├── explanation_card.py
-│   │   ├── evidence_card.py
-│   │   ├── source_badge.py
-│   │   ├── trust_gauge.py
-│   │   └── ...
-│   │
-│   ├── utils/
 │   ├── assets/
-│   │
+│   ├── utils/
+│   ├── styles.css
 │   └── app.py
+│
+├── docs/
+│   └── Veritas_AI_Architecture_Flow.png
+│
+├── hf-deploy/
+│   ├── app.py
+│   ├── backend/
+│   ├── requirements.txt
+│   └── README.md
 │
 ├── requirements.txt
 ├── .gitignore
@@ -1190,23 +1088,23 @@ VeritasAI/
 
 ### Prerequisites
 
-Recommended environment:
+Recommended:
 
 - Python 3.10+
 - Git
 - Internet connection
 - Sufficient RAM for Transformer inference
 
-A dedicated GPU is not mandatory for the current implementation because CPU inference is supported. However, additional compute resources would improve inference latency and scalability.
+A dedicated GPU is not mandatory for the current implementation because CPU inference is supported. Additional compute resources can improve inference latency and scalability.
 
-### 📥 Clone the Repository
+### Clone the Repository
 
 ```bash
-git clone <YOUR_GITHUB_REPOSITORY_URL>
-cd VeritasAI
+git clone https://github.com/deepika8mandakala/AI_Fact_tool_VeritasAI.git
+cd AI_Fact_tool_VeritasAI
 ```
 
-### 🐍 Create Virtual Environment
+### Create a Virtual Environment
 
 **Windows**
 
@@ -1232,59 +1130,52 @@ Then:
 .\venv\Scripts\Activate.ps1
 ```
 
-### 📦 Install Dependencies
+### Install Dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 🔐 Environment Configuration
+---
 
-Create a `.env` file where required.
+## 🔐 Environment Configuration
 
-```env
-MASTODON_INSTANCE=https://mastodon.social
-MASTODON_ACCESS_TOKEN=YOUR_MASTODON_ACCESS_TOKEN
-```
-
-Never commit real credentials. Add the following to `.gitignore`:
-
-```text
-.env
-.env.*
-```
-
-### 🔐 Current Environment Configuration
-
-For local development, the backend can load environment variables from `.env`:
+For local development, configure the required environment variables:
 
 ```env
 GROQ_API_KEY=your_groq_api_key
+
 PORT=8000
+
 MASTODON_INSTANCE=https://mastodon.social
 MASTODON_ACCESS_TOKEN=YOUR_MASTODON_ACCESS_TOKEN
+
 NEWS_API_KEY=YOUR_NEWS_API_KEY
 YOUTUBE_API_KEY=YOUR_YOUTUBE_API_KEY
 ```
 
-For deployment platforms such as Render, Railway, or other cloud services, configure these values through the platform's Environment Variables / Secrets settings instead of committing `.env`.
+Never commit real credentials.
 
-### ▶️ Run Backend
+---
+
+## ▶️ Run the FastAPI Backend
 
 ```bash
 cd backend
-..\venv\Scripts\Activate.ps1   # activate the environment if necessary
 python -m uvicorn app.main:app --reload
 ```
 
 - Backend: `http://127.0.0.1:8000`
 - Swagger documentation: `http://127.0.0.1:8000/docs`
 
-### ▶️ Run Frontend
+---
+
+## ▶️ Run the Streamlit Frontend
+
+Open another terminal.
 
 ```bash
 cd frontend
-..\venv\Scripts\Activate.ps1
 python -m streamlit run app.py
 ```
 
@@ -1292,32 +1183,82 @@ python -m streamlit run app.py
 
 ---
 
-## 🧪 Demo Flow
+## ▶️ Run the Gradio Deployment
 
-The recommended demonstration sequence is:
+The Hugging Face deployment uses:
 
-1. Start FastAPI
-2. Start Streamlit
-3. Open VeritasAI Dashboard
-4. Demonstrate Manual Claim Verification
-5. Show Evidence + Verdict
-6. Demonstrate Mastodon URL Verification
-7. Show Detected Claim
-8. Show Evidence + Source
-9. Start Live Monitoring
-10. Select Hashtag
-11. Post a Test Claim on Mastodon
-12. WebSocket Receives New Post
-13. Automatic Claim Detection
-14. Automatic Evidence Retrieval
-15. Automatic NLI Verification
-16. Live Verdict Appears
-17. Show Live Statistics
-18. Stop Monitoring
+```text
+Gradio
+   ↓
+VeritasAI Verification Pipeline
+   ↓
+Evidence Retrieval
+   ↓
+DeBERTa NLI
+   ↓
+Verdict
+   ↓
+Explanation
+```
+
+The public deployment is available at: https://huggingface.co/spaces/deepika-mandakala/Veritas_AI
+
+---
+
+## ☁️ Hugging Face Spaces Deployment
+
+The Gradio application is deployed using Hugging Face Spaces. The deployment uses a dedicated deployment directory:
+
+```text
+hf-deploy/
+```
+
+The Space configuration is defined in its `README.md` front matter:
+
+```yaml
+---
+title: VeritasAI
+emoji: 🛡️
+colorFrom: blue
+colorTo: indigo
+sdk: gradio
+sdk_version: "6.25.0"
+python_version: "3.12"
+app_file: app.py
+pinned: false
+---
+```
+
+Sensitive values such as `GROQ_API_KEY` are configured through Hugging Face Space Secrets rather than committed to the repository.
+
+---
+
+## 🧪 Recommended Demo Flow
+
+A complete demonstration can follow this sequence:
+
+1. Start FastAPI.
+2. Start Streamlit.
+3. Open the VeritasAI dashboard.
+4. Demonstrate manual claim verification.
+5. Show evidence and verdict.
+6. Demonstrate Mastodon URL verification.
+7. Show extracted claim.
+8. Show retrieved evidence.
+9. Start live monitoring.
+10. Select a hashtag.
+11. Publish or wait for a test claim on Mastodon.
+12. WebSocket receives the post.
+13. Claim detection runs.
+14. Evidence retrieval runs.
+15. NLI verification runs.
+16. Live verdict appears.
+17. Show live statistics.
+18. Stop monitoring.
 
 ### 🎬 Recommended Demo Claims
 
-**Movie**
+**Movie Claim**
 
 ```text
 The movie Titanic was directed by James Cameron and released in 1997.
@@ -1325,7 +1266,7 @@ The movie Titanic was directed by James Cameron and released in 1997.
 
 Expected: `🟢 SUPPORTED`
 
-**Contradiction**
+**Contradictory Claim**
 
 ```text
 Titanic was directed by Christopher Nolan and released in 2010.
@@ -1335,103 +1276,60 @@ Expected behavior: `🔴 CONTRADICTED`, depending on the retrieved evidence.
 
 **Insufficient Evidence**
 
-Use an intentionally obscure or unsupported claim where the current evidence sources do not contain sufficient relevant information.
+Use an intentionally obscure or unsupported claim where the available evidence sources do not contain enough relevant information.
 
 Expected: `🟡 INSUFFICIENT EVIDENCE`
 
-### 📈 Example Live Statistics
-
-During live monitoring, the dashboard can show:
-
-| Metric | Value |
-|---|---|
-| Posts | 1 |
-| Claims | 1 |
-| 🟢 Supported | 1 |
-| 🔴 Contradicted | 0 |
-| 🟡 Insufficient | 0 |
-
-Individual claims are displayed with: Author, Timestamp, Detected Claim, Verdict, Confidence, Explanation, Evidence.
-
 ---
 
-## ☁️ Deployment Notes
-
-VeritasAI contains a Transformer-based NLI model, SentenceTransformer embeddings, FAISS, FastAPI, Streamlit, and optional Groq-based explanation generation. This makes the backend substantially more memory-intensive than a typical FastAPI application.
-
-For deployment:
-
-- Use Python 3.12.x for the current dependency set.
-- Run FastAPI on the platform-provided `$PORT`.
-- Configure API keys as environment variables.
-- Do not commit `.env`, model caches, or secrets.
-- Use a service with sufficient RAM for PyTorch + DeBERTa + FAISS.
-- Keep the Streamlit frontend and FastAPI backend as separate services when the platform's memory limit is too low for a single process.
-- The architecture image in `docs/veritasai_architecture.png` is documentation only; it is not required at runtime.
-
-**Example backend start command:**
-
-```bash
-cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
-```
-
----
-
-## ⚠️ Current Scope & Limitations
+## ⚠️ Limitations
 
 VeritasAI is an evidence-grounded prototype. It does not guarantee absolute truth. Verification depends on:
 
-- Availability of evidence
-- Quality of retrieved sources
+- Evidence availability
+- Evidence quality
 - Retrieval relevance
 - Evidence filtering
-- Model behavior and confidence
+- Model behavior
+- Model confidence
 - Knowledge-source coverage
 
-### Important Limitation: Insufficient Evidence
+### Insufficient Evidence
 
 ```text
-INSUFFICIENT EVIDENCE   ≠   FALSE
+INSUFFICIENT EVIDENCE ≠ FALSE
 ```
 
 It means the available evidence was not sufficient to establish support or contradiction.
 
-### Important Limitation: Live Monitoring
+### Live Monitoring
 
-The current live feature monitors **Mastodon POST EVENTS** through WebSockets. It does not currently process video, audio, or live broadcast video.
+The current live feature monitors **Mastodon post events** through WebSockets. It does not currently process live video, live audio, or video/audio broadcasts.
 
 ---
 
 ## 🎥 Future Video Livestream Verification
 
-A future version could extend the system to live video platforms. Possible architecture:
+A future version could extend VeritasAI to live video platforms. Possible architecture:
 
 ```text
-             LIVE VIDEO
-                 │
-                 ▼
-          AUDIO EXTRACTION
-                 │
-                 ▼
-          SPEECH-TO-TEXT
-                 │
-                 ▼
-          CLAIM DETECTION
-                 │
-                 ▼
-        EVIDENCE RETRIEVAL
-                 │
-                 ▼
-              FAISS
-                 │
-                 ▼
-          DeBERTa NLI
-                 │
-                 ▼
-       REAL-TIME VERDICT
-                 │
-                 ▼
-          USER ALERT
+LIVE VIDEO
+    ↓
+Audio Extraction
+    ↓
+Speech-to-Text
+    ↓
+Claim Detection
+    ↓
+Evidence Retrieval
+    ↓
+FAISS
+    ↓
+DeBERTa NLI
+    ↓
+Real-Time Verdict
+    ↓
+User Alert
 ```
 
 This would require additional infrastructure for video ingestion, audio extraction, automatic speech recognition, streaming infrastructure, low-latency inference, GPU acceleration, and real-time event processing.
@@ -1442,16 +1340,17 @@ This would require additional infrastructure for video ingestion, audio extracti
 
 ### Phase 1 — Current Prototype
 
-- ✓ Claim Verification
-- ✓ Social Post Verification
-- ✓ Evidence Retrieval
-- ✓ FAISS Search
-- ✓ Wikipedia/Wikidata
-- ✓ DeBERTa NLI
-- ✓ Source Metadata
-- ✓ Explainability
-- ✓ Mastodon WebSocket Monitoring
-- ✓ Live Dashboard
+- ✅ Claim Verification
+- ✅ Social Post Verification
+- ✅ Evidence Retrieval
+- ✅ FAISS Search
+- ✅ Wikipedia/Wikidata
+- ✅ DeBERTa NLI
+- ✅ Source Metadata
+- ✅ Explainability
+- ✅ Mastodon WebSocket Monitoring
+- ✅ Streamlit Dashboard
+- ✅ Gradio Hugging Face Deployment
 
 ### Phase 2 — More Evidence Sources
 
@@ -1473,20 +1372,28 @@ Docker, cloud deployment, GPU inference, Redis, Kafka, authentication, multi-use
 
 ### Phase 6 — Advanced Reasoning
 
-Claim decomposition, multi-hop reasoning, cross-source consensus, temporal reasoning, source reputation learning, evidence graph construction, better contradiction detection, improved confidence calibration.
+Claim decomposition, multi-hop reasoning, cross-source consensus, temporal reasoning, source reputation learning, evidence graph construction, improved contradiction detection, better confidence calibration.
 
 ---
 
-## 🔒 Production Considerations
+## 🧩 Core Components
 
-For production deployment, the system could be extended with:
-
-```text
-Authentication + API Gateway + Distributed Workers + Message Queue +
-Vector Database + GPU Inference + Monitoring + Logging + Source Reputation
-```
-
-This would allow the prototype architecture to evolve toward high-volume real-time verification.
+| Component | Description |
+|---|---|
+| Claim Detection | Identifies factual-looking claims |
+| Entity Identification | Identifies important entities used for retrieval |
+| Evidence Retrieval | Searches available knowledge sources |
+| FAISS | Performs vector similarity retrieval |
+| Evidence Ranking | Ranks candidate evidence |
+| Evidence Filtering | Removes insufficiently relevant evidence |
+| DeBERTa NLI | Evaluates evidence–claim relationships |
+| Source Evaluation | Provides source-level metadata |
+| Explanation | Generates human-readable reasoning |
+| Mastodon Integration | Retrieves public Mastodon posts |
+| Live Monitoring | Processes Mastodon post events in real time |
+| Analytics | Provides verification history and statistics |
+| Streamlit | Full-featured project frontend |
+| Gradio | Public lightweight verification interface |
 
 ---
 
@@ -1502,30 +1409,13 @@ Social Post → ML Classifier → FAKE / REAL
 
 ```text
 Social Post → Claim Detection → Entity Identification → Evidence Retrieval →
-Vector Search → Evidence Ranking → Evidence Filtering → NLI →
+Vector Search → Evidence Ranking → Evidence Filtering → NLI Verification →
 SUPPORTED / CONTRADICTED / INSUFFICIENT → Confidence → Source Quality → Explanation
 ```
 
-The key differentiator: **VeritasAI provides an evidence-grounded assessment instead of only a black-box classification label.**
+The key differentiator is:
 
----
-
-## 🧩 Core Components
-
-| Component | Description |
-|---|---|
-| Claim Detection | Identifies factual-looking claims from user input and social-media posts. |
-| Entity Identification | Identifies important entities used to retrieve relevant evidence. |
-| Evidence Retrieval | Searches available knowledge sources for potentially relevant information. |
-| FAISS | Performs vector similarity retrieval. |
-| Evidence Ranking | Ranks candidate evidence based on relevance. |
-| Evidence Filtering | Removes evidence that does not meet the required relevance criteria. |
-| DeBERTa NLI | Evaluates whether evidence supports or contradicts the claim. |
-| Source Evaluation | Displays source-level credibility and quality metadata. |
-| Explanation | Provides human-readable verification reasoning. |
-| Mastodon Integration | Retrieves and verifies public Mastodon posts. |
-| Live Monitoring | Processes new Mastodon posts in real time through WebSocket streaming. |
-| Analytics | Provides verification history and live monitoring statistics. |
+> **VeritasAI provides an evidence-grounded assessment rather than only a black-box classification label.**
 
 ---
 
@@ -1543,26 +1433,26 @@ rather than:
 CLASSIFY → TRUE / FALSE
 ```
 
-This design makes the system more transparent and useful for applications where evidence and explainability matter.
+This design makes the verification process more transparent and useful for applications where evidence, source quality, and explainability matter.
 
 ---
 
 ## 🏆 Project Outcome
 
-The final prototype demonstrates an integrated AI verification pipeline combining Natural Language Processing, Natural Language Inference, Vector Search, Knowledge Retrieval, Evidence Ranking, Source Evaluation, Social Media APIs, WebSocket Streaming, FastAPI, Streamlit, and Database Persistence.
+The VeritasAI prototype demonstrates an integrated AI verification system combining Natural Language Processing, Natural Language Inference, Transformer models, zero-shot classification, sentence embeddings, FAISS vector search, evidence retrieval/ranking/filtering, source evaluation, explainability, FastAPI, Streamlit, Gradio, Mastodon REST API, Mastodon WebSocket streaming, and database persistence.
 
-The system has been tested for:
+The system supports:
 
 - Manual claim verification
 - Social-media post verification
-- Supported claims
-- Contradicted/insufficient evidence scenarios
+- Supported, contradicted, and insufficient-evidence scenarios
 - Evidence retrieval and source display
 - Mastodon integration
 - Real-time hashtag monitoring
 - Live claim detection and verification
-- WebSocket reconnection behavior
+- WebSocket reconnection
 - Analytics and verification history
+- Public Hugging Face deployment
 
 ---
 
@@ -1571,18 +1461,18 @@ The system has been tested for:
 ```text
                          VERITASAI
                              │
-             ┌───────────────┴───────────────┐
-             │                               │
-       NORMAL VERIFICATION              LIVE MONITORING
-             │                               │
-             ▼                               ▼
-       User Claim                       Mastodon
-             │                         WebSocket
-             │                               │
-             ▼                               ▼
-      Claim Detection                    New Post
-             │                               │
-             └───────────────┬───────────────┘
+              ┌──────────────┴──────────────┐
+              │                             │
+       NORMAL VERIFICATION            LIVE MONITORING
+              │                             │
+              ▼                             ▼
+         User Claim                      Mastodon
+              │                          WebSocket
+              │                             │
+              ▼                             ▼
+       Claim Detection                   New Post
+              │                             │
+              └──────────────┬──────────────┘
                              ▼
                     Entity Identification
                              │
@@ -1593,7 +1483,7 @@ The system has been tested for:
                            FAISS
                              │
                              ▼
-                   Wikipedia / Wikidata
+                    Wikipedia / Wikidata
                              │
                              ▼
                     Evidence Filtering
@@ -1601,22 +1491,22 @@ The system has been tested for:
                              ▼
                        DeBERTa NLI
                              │
-             ┌───────────────┼───────────────┐
-             ▼               ▼               ▼
-         SUPPORTED      CONTRADICTED    INSUFFICIENT
-             │               │               │
-             └───────────────┼───────────────┘
+              ┌──────────────┼──────────────┐
+              ▼              ▼              ▼
+          SUPPORTED     CONTRADICTED   INSUFFICIENT
+              │              │              │
+              └──────────────┼──────────────┘
                              ▼
-                   Confidence + Evidence
+                    Confidence + Evidence
                              │
                              ▼
-                    Source Evaluation
+                      Source Evaluation
                              │
                              ▼
-                       Explanation
+                         Explanation
                              │
                              ▼
-                    Streamlit Dashboard
+                    Streamlit / Gradio
 ```
 
 ---
@@ -1625,11 +1515,12 @@ The system has been tested for:
 
 1. **Evidence-Grounded** — Claims are evaluated against retrieved evidence.
 2. **NLI-Based** — DeBERTa evaluates the relationship between evidence and claim.
-3. **Explainable** — The system exposes evidence, source information, confidence, and reasoning.
-4. **Domain-Flexible** — Zero-shot classification supports different topics without requiring a dedicated classifier for every domain.
-5. **Real-Time** — Mastodon WebSocket streaming enables continuous monitoring of new public posts.
-6. **Resource-Conscious** — The system was optimized to run within local hardware constraints using shared model loading, CPU inference, and memory-conscious model initialization.
-7. **Extensible** — The architecture can be extended with additional evidence sources, social platforms, video streams, cloud infrastructure, and advanced reasoning.
+3. **Explainable** — Evidence, sources, confidence, reasoning, and explanations are exposed.
+4. **Domain-Flexible** — Zero-shot classification supports multiple topics.
+5. **Real-Time** — Mastodon WebSocket streaming enables continuous post-event monitoring.
+6. **Resource-Conscious** — Shared model loading and CPU inference reduce local resource requirements.
+7. **Dual Frontend** — Streamlit provides the full project dashboard while Gradio provides the public Hugging Face interface.
+8. **Extensible** — The architecture can be extended with additional evidence sources, social platforms, video streams, cloud infrastructure, and advanced reasoning.
 
 ---
 
@@ -4056,3 +3947,5 @@ The architecture can be extended with additional evidence sources, social platfo
 ✓ Explainability
 ✓ Real-Time Social Monitoring
 ``` 
+=======
+**Claim Detection · Evidence Retrieval · NLI Verification · Explainability · Real-Time Social Monitoring**
